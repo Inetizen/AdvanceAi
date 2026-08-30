@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HotFake – AI Video Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --red-glow: rgba(230,57,70,0.25); --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; --ease: 0.28s cubic-bezier(.4,0,.2,1); }
+      *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 75px; }
+      
+      header { position: sticky; top: 0; z-index: 100; background: rgba(7,7,15,0.88); backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); padding: .9rem 2rem; }
+      nav { max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; }
+      .logo { font-size:1.6rem; font-weight:800; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:.4rem; letter-spacing:-1px; }
+      
+      .container { max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; }
+      .card { background: var(--surf); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+      
+      .inp { width: 100%; padding: 1rem; background: var(--surf2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); margin-bottom: 1rem; outline: none; transition: border-color 0.3s; }
+      .inp:focus { border-color: var(--red); }
+      textarea.inp { resize: vertical; min-height: 120px; }
+      
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: 1rem; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; background: var(--red); color: #fff; width: 100%; font-size: 1rem; transition: transform 0.2s; }
+      .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--red-glow); }
+      .btn-gray { background: var(--surf2); border: 1px solid var(--border); }
+      .btn-gray:hover { background: #2a2a3f; box-shadow: none; }
+
+      /* Request List Styles */
+      .req-item { background: var(--surf2); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; position: relative; }
+      .status-badge { position: absolute; top: 1.5rem; right: 1.5rem; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+      .status-pending { background: #f0ad4e; color: #000; }
+      .status-generating { background: #0275d8; color: #fff; animation: pulse 1.5s infinite; }
+      .status-error { background: #E63946; color: #fff; }
+      .status-completed { background: #2DC653; color: #fff; }
+
+      .req-prompt { font-size: 0.95rem; margin: 10px 0; color: #e0e0e0; line-height: 1.5; }
+      .error-text { color: #E63946; font-size: 0.85rem; font-weight: 600; margin-top: 10px; background: rgba(230,57,70,0.1); padding: 8px; border-radius: 6px; }
+
+      @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+      .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="#" class="logo"><span style="color:var(--red);">▶</span> HotFake AI</a>
+    <button id="logoutBtn" class="btn btn-gray hidden" style="width:auto; padding: 0.5rem 1rem;">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+    
+    <!-- AUTHENTICATION SECTION -->
+    <div id="authSection" class="card">
+        <h2 style="margin-bottom: 1.5rem; text-align: center;">Welcome to AI Studio</h2>
+        
+        <div id="loginForm">
+            <input type="email" id="logEmail" class="inp" placeholder="Email Address">
+            <input type="password" id="logPass" class="inp" placeholder="Password">
+            <button class="btn" onclick="loginUser()">Login to Dashboard</button>
+            <p style="text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">New user? <a href="#" onclick="toggleAuth()" style="color: var(--red);">Create an account</a></p>
+        </div>
+
+        <div id="regForm" class="hidden">
+            <input type="text" id="regName" class="inp" placeholder="Full Name">
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="regAge" class="inp" placeholder="Age" min="13" max="99">
+                <select id="regGender" class="inp">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <input type="email" id="regEmail" class="inp" placeholder="Email Address">
+            <input type="password" id="regPass" class="inp" placeholder="Create Password">
+            <button class="btn" onclick="registerUser()">Register Account</button>
+            <p style="text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">Already have an account? <a href="#" onclick="toggleAuth()" style="color: var(--red);">Login here</a></p>
+        </div>
+    </div>
+
+    <!-- MAIN AI GENERATOR SECTION -->
+    <div id="appSection" class="hidden">
+        
+        <div class="card">
+            <h3 style="margin-bottom: 1rem; color: var(--red);">✨ Generate New Video</h3>
+            <textarea id="aiPrompt" class="inp" placeholder="Describe the video you want to generate in detail..."></textarea>
+            <input type="url" id="aiImage" class="inp" placeholder="Reference Image URL (Optional)">
+            <button id="genBtn" class="btn" onclick="submitAIRequest()">🚀 Submit to AI Engine</button>
+        </div>
+
+        <div>
+            <h3 style="margin-bottom: 1.5rem; border-left: 3px solid var(--red); padding-left: 10px;">Your Workspace</h3>
+            <div id="generationsList">
+                <p style="text-align: center; color: var(--muted);">No generations yet. Start creating!</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8",
+    authDomain: "inshelp-f2cba.firebaseapp.com",
+    databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com",
+    projectId: "inshelp-f2cba"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+  let currentUser = null;
+
+  window.toggleAuth = () => {
+      document.getElementById('loginForm').classList.toggle('hidden');
+      document.getElementById('regForm').classList.toggle('hidden');
+  };
+
+  window.registerUser = () => {
+      const email = document.getElementById('regEmail').value;
+      const pass = document.getElementById('regPass').value;
+      const name = document.getElementById('regName').value;
+      const age = document.getElementById('regAge').value;
+      const gender = document.getElementById('regGender').value;
+
+      if(!email || !pass || !name || !age || !gender) return alert("Fill all fields!");
+
+      createUserWithEmailAndPassword(auth, email, pass).then((userCredential) => {
+          const user = userCredential.user;
+          set(ref(db, 'users/' + user.uid), {
+              name: name, age: age, gender: gender, email: email, registeredAt: new Date().toISOString()
+          });
+          alert("Account Created!");
+      }).catch(error => alert(error.message));
+  };
+
+  window.loginUser = () => {
+      const email = document.getElementById('logEmail').value;
+      const pass = document.getElementById('logPass').value;
+      signInWithEmailAndPassword(auth, email, pass).catch(error => alert("Login Failed: " + error.message));
+  };
+
+  document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+  onAuthStateChanged(auth, (user) => {
+      if (user) {
+          currentUser = user;
+          document.getElementById('authSection').classList.add('hidden');
+          document.getElementById('appSection').classList.remove('hidden');
+          document.getElementById('logoutBtn').classList.remove('hidden');
+          loadGenerations();
+      } else {
+          currentUser = null;
+          document.getElementById('authSection').classList.remove('hidden');
+          document.getElementById('appSection').classList.add('hidden');
+          document.getElementById('logoutBtn').classList.add('hidden');
+      }
+  });
+
+  window.submitAIRequest = () => {
+      const prompt = document.getElementById('aiPrompt').value.trim();
+      const image = document.getElementById('aiImage').value.trim();
+      if(!prompt) return alert("Please describe your video prompt.");
+
+      const btn = document.getElementById('genBtn');
+      btn.innerText = "Submitting..."; btn.disabled = true;
+
+      const reqRef = push(ref(db, 'ai_requests'));
+      set(reqRef, {
+          uid: currentUser.uid,
+          prompt: prompt,
+          imageUrl: image || null,
+          status: 'pending',
+          errorMsg: '',
+          videoUrl: '',
+          timestamp: new Date().toISOString(),
+          userHidden: false // This allows soft delete
+      }).then(() => {
+          document.getElementById('aiPrompt').value = '';
+          document.getElementById('aiImage').value = '';
+          btn.innerText = "🚀 Submit to AI Engine"; btn.disabled = false;
+      });
+  };
+
+  function loadGenerations() {
+      onValue(ref(db, 'ai_requests'), (snap) => {
+          const data = snap.val();
+          const list = document.getElementById('generationsList');
+          list.innerHTML = '';
+          let hasVisible = false;
+
+          if (data) {
+              const reqs = Object.keys(data).map(k => ({id: k, ...data[k]})).reverse();
+              
+              reqs.forEach(req => {
+                  if(req.uid === currentUser.uid && req.userHidden !== true) {
+                      hasVisible = true;
+                      
+                      let badge = ''; let content = '';
+                      
+                      if(req.status === 'pending') badge = '<span class="status-badge status-pending">In Queue</span>';
+                      if(req.status === 'generating') badge = '<span class="status-badge status-generating">Generating...</span>';
+                      if(req.status === 'error') {
+                          badge = '<span class="status-badge status-error">Error</span>';
+                          content = `<div class="error-text">⚠️ ${req.errorMsg || "GPU not connected. Please contact admin."}</div>`;
+                      }
+                      if(req.status === 'completed') {
+                          badge = '<span class="status-badge status-completed">Completed</span>';
+                          content = `
+                          <div style="margin-top:15px; display:flex; gap:10px;">
+                              <a href="${req.videoUrl}" target="_blank" class="btn" style="flex:1; text-decoration:none;">▶ Play Video</a>
+                              <a href="${req.videoUrl}" download class="btn btn-gray" style="flex:1; text-decoration:none;">⬇ Download</a>
+                          </div>`;
+                      }
+
+                      let imgHtml = req.imageUrl ? `<img src="${req.imageUrl}" style="max-width:100px; border-radius:8px; margin-top:10px; border:1px solid var(--border);">` : '';
+
+                      list.innerHTML += `
+                          <div class="req-item">
+                              ${badge}
+                              <div style="color:var(--muted); font-size:0.75rem;">ID: ${req.id}</div>
+                              <div class="req-prompt">"${req.prompt}"</div>
+                              ${imgHtml}
+                              ${content}
+                              <button class="btn btn-gray" style="margin-top:15px; width:100%; padding:0.5rem;" onclick="hideRequest('${req.id}')">🗑️ Remove from View</button>
+                          </div>
+                      `;
+                  }
+              });
+          }
+          if(!hasVisible) list.innerHTML = '<p style="text-align: center; color: var(--muted);">No active generations.</p>';
+      });
+  }
+
+  // Soft Delete: Hides from user, stays in Firebase for Admin
+  window.hideRequest = (id) => {
+      if(confirm("Hide this generated video?")) {
+          update(ref(db, `ai_requests/${id}`), { userHidden: true });
+      }
+  };
+</script>
+</body>
+</html>
