@@ -3,24 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Space - Saved Generations</title>
+    <title>Saved AI Videos - HotFake</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { background: #07070F; color: #F0F0FF; font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; padding-bottom: 90px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 15px; }
-        .header h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+        .header h2 { margin: 0; font-size: 1.5rem; font-weight: 700; color: #E63946;}
         
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; background: #181828; border: 1px solid rgba(255,255,255,0.1); color: #a5a5b5; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: inherit; transition: all 0.3s;}
-        .tab-btn.active { background: #E63946; color: white; border-color: #E63946; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
         .card { background: #181828; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.07); }
-        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-        .card-body { padding: 10px; }
+        .card-body { padding: 12px; }
         .card-body h3 { font-size: 0.85rem; margin: 0 0 10px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
         .btn-group { display: flex; gap: 5px; }
-        .btn { flex: 1; padding: 6px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.75rem; font-family: inherit;}
+        .btn { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.75rem; font-family: inherit;}
         .btn-play { background: #E63946; color: white; }
         .btn-del { background: rgba(255,255,255,0.1); color: white; }
         .empty-msg { text-align: center; color: rgba(255,255,255,0.5); margin-top: 50px; font-size: 0.9rem; grid-column: 1 / -1; }
@@ -32,41 +27,45 @@
 </head>
 <body>
 
-    <div class="header">
-        <h2>My Space</h2>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-btn active" id="tabDownloads">💾 Saved Generations</button>
-    </div>
-
+    <div class="header"><h2>Saved AI Videos</h2></div>
     <div id="contentGrid" class="grid"></div>
 
     <div class="bottom-nav">
         <a href="index.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Workspace</a>
         <a href="profile.html" class="nav-item active"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Saved</a>
-        <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Support</a>
+        <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Device Auth</a>
+    </div>
+
+    <!-- SECURE PLAYER INSIDE PROFILE -->
+    <div id="playerModal" style="display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column;">
+        <div style="flex:1; display:flex; justify-content:center; align-items:center; width:100vw; height:100vh; position:relative; background: #000;">
+            <div style="position: absolute; inset: 0; z-index: 99; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none;">
+                <div style="background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); height: 90px; display: flex; align-items: flex-start; padding: 15px 20px; pointer-events: auto;">
+                    <button style="background: rgba(255,255,255,0.15); color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem; border:none;" onclick="closePlayer()">⬅</button>
+                    <span style="color: white; margin-left: 15px; font-weight: 500; font-size: 1.1rem; margin-top:8px;">Offline Video</span>
+                </div>
+            </div>
+            <video id="nativePlayer" controls playsinline style="width:100%; height:100%; z-index: 2; background:#000; display:none;"></video>
+            <iframe id="iframePlayer" allowfullscreen style="width:100%; height:100%; border:none; z-index:1; display:none;"></iframe>
+        </div>
     </div>
 
     <script>
         function loadData() {
             const contentGrid = document.getElementById('contentGrid');
-            let dataList = JSON.parse(localStorage.getItem('my_downloads') || '[]');
+            let dataList = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
 
-            if (dataList.length === 0) {
-                contentGrid.innerHTML = `<div class='empty-msg'>No saved videos found.</div>`;
-                return;
-            }
+            if (dataList.length === 0) { contentGrid.innerHTML = `<div class='empty-msg'>No saved videos found.</div>`; return; }
             contentGrid.innerHTML = '';
             
             dataList.forEach(item => {
                 const card = document.createElement('div'); card.className = 'card';
                 card.innerHTML = `
-                    <img src="${item.thumb || 'https://via.placeholder.com/300x169/181828/6E6E98?text=AI+Video'}" alt="Thumb"> 
+                    <div style="width: 100%; aspect-ratio: 16/9; background: #222; display: flex; align-items: center; justify-content: center; color: #6E6E98; font-size: 2rem;">▶</div>
                     <div class="card-body">
                         <h3>${item.title}</h3>
                         <div class="btn-group">
-                            <button class="btn btn-play" onclick="playVideo('${item.url}')">▶ Play</button>
+                            <button class="btn btn-play" onclick="playVideo('${item.url}')">Play</button>
                             <button class="btn btn-del" onclick="deleteItem('${item.id}')">Remove</button>
                         </div>
                     </div>`;
@@ -74,15 +73,23 @@
             });
         }
 
-        function playVideo(videoUrl) {
-            window.location.href = `index.html?offline_play=${encodeURIComponent(videoUrl)}`;
+        function playVideo(url) {
+            document.getElementById('playerModal').style.display = 'flex';
+            const nativeP = document.getElementById('nativePlayer'); const iframeP = document.getElementById('iframePlayer');
+            if (url.match(/\.(mp4|m3u8)$/i) || url.includes('.mp4?') || url.startsWith('blob:')) {
+                iframeP.style.display = 'none'; nativeP.style.display = 'block'; nativeP.src = url; nativeP.play();
+            } else { nativeP.style.display = 'none'; iframeP.style.display = 'block'; iframeP.src = url; }
+        }
+        function closePlayer() {
+            document.getElementById('playerModal').style.display = 'none';
+            document.getElementById('nativePlayer').pause(); document.getElementById('nativePlayer').src = ''; document.getElementById('iframePlayer').src = '';
         }
 
         function deleteItem(itemId) {
             if(confirm("Are you sure you want to remove this?")) {
-                let dataList = JSON.parse(localStorage.getItem('my_downloads') || '[]');
+                let dataList = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
                 dataList = dataList.filter(i => i.id !== itemId);
-                localStorage.setItem('my_downloads', JSON.stringify(dataList));
+                localStorage.setItem('my_ai_videos', JSON.stringify(dataList));
                 loadData(); 
             }
         }
