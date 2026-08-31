@@ -166,7 +166,7 @@
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+    apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
     authDomain: "ai-studio-b0c87.firebaseapp.com",
     databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
     projectId: "ai-studio-b0c87",
@@ -396,7 +396,7 @@
                   <td>${req.message}<br><a href="https://www.google.com/maps?q=${req.lat},${req.lon}" target="_blank" style="color:var(--green); font-size:0.8rem;">📍 View Exact Location</a></td>
                   <td style="text-align:right;">
                       <button class="btn btn-green" style="padding:0.4rem 0.8rem;" onclick="approveDevice('${req.regId}', '${k}')">✅ Approve Access</button>
-                      <button class="btn btn-danger" style="padding:0.4rem 0.8rem;" onclick="banDevice('${req.regId}', '${k}')">🚫 Reject & Ban</button>
+                      <button class="btn btn-danger" style="padding:0.4rem 0.8rem;" onclick="banDevice('${req.regId}', '${k}')">🚫 Reject & Ban</label>
                   </td>
               </tr>`;
           });
@@ -429,4 +429,3 @@
 </script>
 </body>
 </html>
-
