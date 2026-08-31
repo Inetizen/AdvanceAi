@@ -4,32 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#07070F">
-    <title>Saved Output - HotFake AI</title>
+    <title>Generate History - HotFake AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --green: #2DC653; --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); }
+        :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --red-glow: rgba(230,57,70,0.3); --green: #2DC653; --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); }
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
         
-        header { background: rgba(7,7,15,0.88); backdrop-filter: blur(18px); padding: 1.2rem; border-bottom: 1px solid var(--border); position: sticky; top:0; z-index: 100; }
-        h2 { margin: 0; font-size: 1.5rem; color: var(--red); }
+        /* Premium Header Styling */
+        header { background: rgba(7,7,15,0.88); backdrop-filter: blur(18px); padding: 1.2rem; border-bottom: 1px solid var(--border); position: sticky; top:0; z-index: 100; text-align: center; }
+        h2 { margin: 0; font-size: 1.35rem; color: #fff; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        h2 .highlight { color: var(--red); }
         
         .container { padding: 20px; max-width: 800px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
         
-        .vid-card { background: var(--surf2); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); display: flex; flex-direction: column; }
-        .vid-thumb { height: 100px; background: var(--surf); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #333; position: relative; }
-        .vid-info { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .vid-title { font-size: 0.85rem; color: #fff; font-weight: 500; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .vid-time { font-size: 0.65rem; color: var(--muted); margin-bottom: 12px; }
+        /* Premium Card Styling */
+        .vid-card { background: var(--surf2); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .vid-card:hover { transform: translateY(-3px); border-color: rgba(230,57,70,0.3); box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
         
-        .action-row { display: flex; gap: 8px; }
-        .btn-small { flex: 1; padding: 8px 0; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; text-decoration: none; font-family: 'Poppins', sans-serif;}
-        .btn-play { background: var(--red); }
-        .btn-down { background: var(--green); }
-        .btn-del { background: var(--surf); border: 1px solid var(--border); color: #ff8c94; }
+        .vid-thumb { height: 110px; background: linear-gradient(145deg, #11111d, #1a1a2e); display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid var(--border); }
         
-        .empty-state { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 0.9rem; }
+        .vid-info { padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .vid-title { font-size: 0.9rem; color: #fff; font-weight: 600; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vid-time { font-size: 0.7rem; color: var(--muted); margin-bottom: 15px; font-family: monospace; }
+        
+        /* Improved Buttons Layout */
+        .action-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        
+        .btn-play { flex: 1; background: var(--red); color: #fff; border: none; padding: 10px 0; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 4px 15px var(--red-glow); font-family: 'Poppins', sans-serif; transition: 0.2s; }
+        .btn-play:hover { background: #ff4754; }
+        
+        /* Icon-Only Download Button */
+        .btn-down { width: 42px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: 0.2s; }
+        .btn-down:hover { background: rgba(45,198,83,0.15); border-color: var(--green); color: var(--green); }
+        
+        .btn-del { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.08); color: var(--muted); padding: 8px 0; border-radius: 8px; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: 0.2s; font-family: 'Poppins', sans-serif;}
+        .btn-del:hover { background: rgba(230,57,70,0.1); color: var(--red); border-color: rgba(230,57,70,0.3); }
+        
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 0.95rem; }
         
         /* Modal Video Player Styling */
         #playerModal { display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column; touch-action: none !important;}
@@ -49,23 +62,26 @@
 </head>
 <body>
 
-<header><h2>Generate history</h2></header>
+<header>
+    <h2>✨ Generate <span class="highlight">History</span></h2>
+</header>
 
 <div class="container">
     <div class="grid" id="videoGrid"></div>
     <div class="empty-state" id="emptyState" style="display:none;">
         <div style="font-size: 3rem; margin-bottom: 10px;">📭</div>
-        You haven't generated any videos yet.
+        You haven't generated any media yet.
     </div>
 </div>
 
+<!-- SMART MEDIA PLAYER -->
 <div id="playerModal">
   <div class="player-wrapper">
        <div class="smart-overlay">
            <div class="glass-top">
                <div style="display:flex; align-items:center;">
                    <button class="ui-back-btn" onclick="closePlayer()">⬅</button>
-                   <span style="margin-left:15px; color:white; font-weight:bold; font-size: 0.9rem;">Playback</span>
+                   <span style="margin-left:15px; color:white; font-weight:bold; font-size: 0.95rem;">Playback</span>
                </div>
            </div>
        </div>
@@ -98,22 +114,27 @@
             emptyState.style.display = 'none';
             // Show newest first
             completedVids.reverse().forEach((v, idx) => {
-                // Find actual original index for removal
                 const originalIndex = vids.findIndex(orig => orig.id === v.id);
                 
                 grid.innerHTML += `
                     <div class="vid-card">
-                        <div class="vid-thumb">🎥</div>
+                        <div class="vid-thumb">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                        </div>
                         <div class="vid-info">
                             <div>
                                 <div class="vid-title">"${v.title}"</div>
                                 <div class="vid-time">${new Date(v.timestamp).toLocaleString()}</div>
                             </div>
                             <div class="action-row">
-                                <button class="btn-small btn-play" onclick="playVid('${v.url}')">▶ Play</button>
-                                <a href="${v.url}" download class="btn-small btn-down">⬇ Download</a>
+                                <button class="btn-play" onclick="playVid('${v.url}')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Play
+                                </button>
+                                <a href="${v.url}" download="HotFake_AI_Export" class="btn-down" title="Download">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                </a>
                             </div>
-                            <button class="btn-small btn-del" style="margin-top:8px;" onclick="removeVid(${originalIndex})">🗑 Remove</button>
+                            <button class="btn-del" onclick="removeVid(${originalIndex})">Remove Item</button>
                         </div>
                     </div>
                 `;
@@ -122,11 +143,11 @@
     }
 
     window.removeVid = (index) => {
-        if(confirm("Remove this item from your saved list?")) {
+        if(confirm("Remove this item from your generated history?")) {
             let vids = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
             vids.splice(index, 1);
             localStorage.setItem('my_ai_videos', JSON.stringify(vids));
-            loadVideos(); // Refresh UI
+            loadVideos(); 
         }
     };
 
@@ -158,9 +179,7 @@
         document.getElementById('nativeImagePlayer').src = '';
     };
 
-    // Initialize Page
     loadVideos();
 </script>
 </body>
 </html>
-
