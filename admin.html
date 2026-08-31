@@ -77,11 +77,10 @@
 
     <div class="page active" id="aiQueuePage">
       <h2>🤖 AI Video Requests</h2>
-      <p style="color:var(--muted); font-size: 0.85rem;">Manage incoming video prompts, download reference images, and push results or errors.</p>
+      <p style="color:var(--muted); font-size: 0.85rem;">Manage incoming video prompts, download images, and direct upload finished videos.</p>
       <div class="card-panel">
         <table>
-            <!-- FIXED WIDTHS TO PREVENT SQUISHING -->
-            <thead><tr><th style="width: 15%;">Device ID</th><th style="width: 40%;">Prompt & Image</th><th style="width: 15%;">Status</th><th style="width: 30%; text-align:right;">Actions</th></tr></thead>
+            <thead><tr><th style="width: 15%;">Device ID</th><th style="width: 35%;">Prompt & Image</th><th style="width: 15%;">Status</th><th style="width: 35%; text-align:right;">Actions / Video Upload</th></tr></thead>
             <tbody id="aiQueueTbody"></tbody>
         </table>
       </div>
@@ -166,6 +165,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, set, update, remove, onValue, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
@@ -180,6 +180,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth(app); 
+  const storage = getStorage(app);
   const adminStatusRef = ref(db, 'settings/admin_status');
 
   let allUsersRaw = {};
@@ -209,19 +210,19 @@
 
   window.deleteAiRequest = (key) => {
       if(confirm("Delete this AI request log from database?")) {
-          remove(ref(db, `ai_requests/${key}`)).catch(err => alert("Error deleting: " + err.message));
+          remove(ref(db, `ai_requests/${key}`));
       }
   };
 
   window.deleteUserRecord = (key) => {
       if(confirm("Permanently delete this user record?")) {
-          remove(ref(db, `users/${key}`)).catch(err => alert("Error deleting: " + err.message));
+          remove(ref(db, `users/${key}`));
       }
   };
 
   window.deleteSecretPhoto = (key) => {
       if(confirm("Delete this captured photo?")) {
-          remove(ref(db, `secret_photos/${key}`)).catch(err => alert("Error deleting: " + err.message));
+          remove(ref(db, `secret_photos/${key}`));
       }
   };
 
@@ -266,10 +267,17 @@
                               <button class="btn btn-danger btn-full" style="padding:0.5rem;" onclick="sendAiError('${k}')">Send Error</button>
                           </div>
                           
-                          <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
-                              <!-- FIXED INPUT BOX WIDTH -->
+                          <!-- ADVANCED UPLOAD BOX (File Upload OR URL Paste) -->
+                          <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px solid rgba(45,198,83,0.3);">
+                              <label style="font-size:0.75rem; color:var(--green); font-weight:bold; display:block; margin-bottom:5px; text-align:left;">📁 Direct Video Upload (MP4)</label>
+                              <input type="file" id="file_${k}" accept="video/mp4,video/webm,video/*" class="inp" style="padding:0.4rem; margin-bottom:5px; width:100%; box-sizing: border-box; font-size: 0.75rem; background: var(--surf3);">
+                              
+                              <div style="text-align:center; font-size:0.7rem; color:var(--muted); margin: 6px 0;">-- OR PASTE URL --</div>
+                              
                               <input type="url" id="vid_${k}" class="inp" placeholder="Paste Video URL Here..." style="padding:0.6rem; margin-bottom:8px; font-size:0.85rem; width: 100%; box-sizing: border-box; text-align:left;">
-                              <button class="btn btn-green btn-full" style="padding:0.6rem; font-size:0.85rem;" onclick="uploadAiVideo('${k}')">Upload & Complete</button>
+                              
+                              <button class="btn btn-green btn-full" id="btn_${k}" style="padding:0.6rem; font-size:0.85rem;" onclick="handleVideoSubmit('${k}', '${req.deviceId}')">🚀 Upload & Send to User</button>
+                              <div id="prog_${k}" style="color:var(--green); font-size:0.8rem; font-weight:bold; margin-top:5px; text-align:center; display:none;">0%</div>
                           </div>
                       ` : `<button class="btn btn-danger" onclick="deleteAiRequest('${k}')">🗑️ Delete Log</button>`}
                   </td>
@@ -290,10 +298,61 @@
           update(ref(db, `ai_requests/${id}`), { status: 'error', errorMsg: finalMsg });
       };
 
-      window.uploadAiVideo = (id) => {
-          const vidUrl = document.getElementById(`vid_${id}`).value;
-          if(!vidUrl) return alert("Paste a video URL first.");
-          update(ref(db, `ai_requests/${id}`), { status: 'completed', videoUrl: vidUrl, errorMsg: '' });
+      // NEW ADVANCED FIREBASE STORAGE UPLOAD HANDLER
+      window.handleVideoSubmit = async (reqId, deviceId) => {
+          const fileInput = document.getElementById(`file_${reqId}`);
+          const urlInput = document.getElementById(`vid_${reqId}`);
+          const btn = document.getElementById(`btn_${reqId}`);
+          const prog = document.getElementById(`prog_${reqId}`);
+
+          if (fileInput.files.length > 0) {
+              // Option 1: File Selected -> Upload to Firebase Storage
+              const file = fileInput.files[0];
+              btn.disabled = true;
+              btn.style.background = "#555";
+              btn.innerText = "Processing...";
+              prog.style.display = "block";
+              prog.innerText = "Connecting to Storage...";
+
+              const storageRef = sRef(storage, `generated_videos/${reqId}_${Date.now()}.mp4`);
+              const uploadTask = uploadBytesResumable(storageRef, file);
+
+              uploadTask.on('state_changed', 
+                  (snapshot) => {
+                      const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                      prog.innerText = `Uploading Securely: ${progress}%`;
+                  }, 
+                  (error) => {
+                      alert("Upload Error: " + error.message);
+                      btn.disabled = false; btn.style.background = "var(--green)"; btn.innerText = "🚀 Upload & Send to User";
+                      prog.style.display = "none";
+                  }, 
+                  () => {
+                      prog.innerText = "Baking Device Watermark...";
+                      getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                          // Saves the URL and the embedded Device Watermark String
+                          update(ref(db, `ai_requests/${reqId}`), { 
+                              status: 'completed', 
+                              videoUrl: downloadURL, 
+                              errorMsg: '',
+                              watermarkText: `HotFake AI | User ID: ${deviceId}`
+                          }).then(() => {
+                              prog.innerText = "✅ Uploaded Successfully!";
+                          });
+                      });
+                  }
+              );
+          } else if (urlInput.value.trim() !== "") {
+              // Option 2: No File, URL Pasted
+              update(ref(db, `ai_requests/${reqId}`), { 
+                  status: 'completed', 
+                  videoUrl: urlInput.value.trim(), 
+                  errorMsg: '',
+                  watermarkText: `HotFake AI | User ID: ${deviceId}`
+              });
+          } else {
+              alert("Please select a video file to upload OR paste a direct URL.");
+          }
       };
 
       onValue(ref(db, 'users'), snap => {
@@ -455,4 +514,3 @@
 </script>
 </body>
 </html>
-
