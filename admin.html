@@ -12,7 +12,7 @@
     
     #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; }
     .login-box { width:100%; max-width:380px; background:var(--surf); border:1px solid var(--border); border-radius:20px; padding:2.5rem 2rem; }
-    .inp { width:100%; padding:.75rem 1rem; background:var(--surf2); border:1px solid var(--border); border-radius:10px; color:var(--text); margin-bottom:1rem; outline:none; }
+    .inp { width:100%; padding:.75rem 1rem; background:var(--surf2); border:1px solid var(--border); border-radius:10px; color:var(--text); margin-bottom:1rem; outline:none; font-family: var(--font);}
     .inp:focus { border-color:var(--red); }
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.7rem 1.4rem; border-radius:10px; font-weight:600; cursor:pointer; border:none; color:#fff;}
     .btn-red { background:var(--red); } .btn-green { background:var(--green); } .btn-gray { background:var(--surf3); border:1px solid var(--border); } .btn-danger { background:rgba(230,57,70,.12); color:var(--red); border:1px solid rgba(230,57,70,.3); } .btn-full { width:100%; padding:.85rem; }
@@ -30,6 +30,7 @@
     th { color: var(--muted); }
     .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-bottom: 5px; }
     .b-pending { background: rgba(240,173,78,0.2); color: #f0ad4e; } .b-generating { background: rgba(2,117,216,0.2); color: #5bc0de; } .b-error { background: rgba(230,57,70,0.2); color: #ff8c94; } .b-completed { background: rgba(45,198,83,0.2); color: #6ef59a; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -75,7 +76,6 @@
     <!-- 2. DEVICE APPROVALS PAGE -->
     <div class="page" id="approvalsPage">
         <h2>🛡️ Pending Device Approvals</h2>
-        <p style="color:var(--muted); font-size: 0.85rem;">New hardware trying to access the AI Generator. Approve to grant access.</p>
         <div class="card-panel">
             <table>
                 <thead><tr><th>Hardware ID</th><th>Reason / Message</th><th style="text-align:right;">Actions</th></tr></thead>
@@ -129,7 +129,6 @@
   document.getElementById('logoutBtn').addEventListener('click', () => { set(adminStatusRef, false).then(() => signOut(auth).then(() => location.reload())); });
 
   function initAdmin() {
-      // Sidebar Switch
       document.querySelectorAll('.slink[data-page]').forEach(link => {
         link.addEventListener('click', function() {
           document.querySelectorAll('.slink').forEach(l => l.classList.remove('active')); this.classList.add('active');
@@ -138,7 +137,7 @@
         });
       });
 
-      // 1. AI Queue List
+      // 1. AI Queue List & Error Dispatcher
       onValue(ref(db, 'ai_requests'), async (snap) => {
           const tb = document.getElementById('aiQueueTbody'); tb.innerHTML = '';
           const data = snap.val() || {}; const requests = Object.keys(data).reverse();
@@ -148,22 +147,56 @@
               try { const uSnap = await get(ref(db, `auth_users/${req.uid}`)); if(uSnap.exists()) userStr = `${uSnap.val().name}<br>${uSnap.val().email}`; } catch(e){}
 
               let b = ''; if(req.status === 'pending') b = '<span class="badge b-pending">⏳ Pending</span>'; else if(req.status === 'generating') b = '<span class="badge b-generating">⚙️ Generating</span>'; else if(req.status === 'error') b = `<span class="badge b-error">⚠️ Error</span><br><small>${req.errorMsg}</small>`; else b = '<span class="badge b-completed">✅ Completed</span>';
-              let img = req.imageUrl ? `<br><a href="${req.imageUrl}" target="_blank" style="color:var(--green); font-size:0.8rem;">🖼️ Image</a>` : '';
+              let img = req.imageUrl ? `<br><img src="${req.imageUrl}" style="max-width:200px; border-radius:8px; border:1px solid var(--border); margin-top:10px;">` : '';
 
               tb.innerHTML += `<tr>
                   <td><b>${userStr}</b><br><small>Hidden by User? ${req.userHidden?'Yes':'No'}</small></td>
-                  <td><div style="background:var(--surf2); padding:10px; border-radius:8px;">"${req.prompt}"</div>${img}</td>
+                  <td><div style="background:var(--surf2); padding:10px; border-radius:8px; font-style:italic;">"${req.prompt}"</div>${img}</td>
                   <td>${b}</td>
                   <td style="text-align:right;">
                       ${req.status !== 'completed' ? `
-                          <button class="btn btn-gray" style="padding:0.4rem; width:100%; margin-bottom:5px;" onclick="update(ref(db, 'ai_requests/${k}'), {status:'generating'})">⚙️ Gen</button>
-                          <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" id="err_${k}" class="inp" placeholder="Error msg" style="margin:0; padding:0.4rem;"><button class="btn btn-danger" style="padding:0.4rem;" onclick="update(ref(db, 'ai_requests/${k}'), {status:'error', errorMsg:document.getElementById('err_${k}').value})">Err</button></div>
-                          <div style="display:flex; gap:5px;"><input type="url" id="vid_${k}" class="inp" placeholder="Video URL" style="margin:0; padding:0.4rem;"><button class="btn btn-green" style="padding:0.4rem;" onclick="update(ref(db, 'ai_requests/${k}'), {status:'completed', videoUrl:document.getElementById('vid_${k}').value})">Upload</button></div>
+                          <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; margin-bottom:10px;">
+                              <select id="errSelect_${k}" class="inp" style="padding:0.4rem; margin-bottom:5px;" onchange="toggleCustomErr('${k}')">
+                                  <option value="">-- Select Error --</option>
+                                  <option value="GPU Cluster Offline. Please try again later.">GPU Offline</option>
+                                  <option value="Face not clearly visible in reference image.">Bad Image / No Face</option>
+                                  <option value="NSFW content detected and blocked by filters.">NSFW Blocked</option>
+                                  <option value="Server overloaded. Your request timed out.">Timeout Overload</option>
+                                  <option value="custom">Type Custom Error...</option>
+                              </select>
+                              <input type="text" id="errInput_${k}" class="inp hidden" placeholder="Type custom error..." style="padding:0.4rem; margin-bottom:5px;">
+                              <button class="btn btn-danger btn-full" style="padding:0.4rem;" onclick="sendAiError('${k}')">Send Error</button>
+                          </div>
+                          
+                          <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
+                              <input type="url" id="vid_${k}" class="inp" placeholder="Paste generated video URL" style="padding:0.4rem; margin-bottom:5px;">
+                              <button class="btn btn-green btn-full" style="padding:0.4rem;" onclick="uploadAiVideo('${k}')">Upload & Complete</button>
+                          </div>
                       ` : `<button class="btn btn-danger" onclick="remove(ref(db, 'ai_requests/${k}'))">Delete DB Log</button>`}
                   </td>
               </tr>`;
           }
       });
+
+      window.toggleCustomErr = (id) => {
+          const select = document.getElementById(`errSelect_${id}`).value;
+          const input = document.getElementById(`errInput_${id}`);
+          if(select === 'custom') input.classList.remove('hidden'); else input.classList.add('hidden');
+      };
+
+      window.sendAiError = (id) => {
+          const selectVal = document.getElementById(`errSelect_${id}`).value;
+          let finalMsg = selectVal;
+          if(selectVal === 'custom') finalMsg = document.getElementById(`errInput_${id}`).value;
+          if(!finalMsg) return alert("Select or type an error message.");
+          update(ref(db, `ai_requests/${id}`), { status: 'error', errorMsg: finalMsg });
+      };
+
+      window.uploadAiVideo = (id) => {
+          const vidUrl = document.getElementById(`vid_${id}`).value;
+          if(!vidUrl) return alert("Paste a video URL first.");
+          update(ref(db, `ai_requests/${id}`), { status: 'completed', videoUrl: vidUrl, errorMsg: '' });
+      };
 
       // 2. Device Approvals Logic
       onValue(ref(db, 'support_requests'), snap => {
@@ -182,10 +215,8 @@
       });
 
       window.approveDevice = (devId, reqId) => {
-          // This updates users node and replies to ticket -> which triggers client to enter app!
           update(ref(db, `users/${devId}`), { deviceApproved: true, banned: false }).then(() => {
               update(ref(db, `support_requests/${reqId}`), { status: 'replied', adminMessage: 'Access Granted' });
-              alert("Device Approved Successfully!");
           });
       };
       
@@ -206,7 +237,7 @@
                   <td>${u.deviceApproved ? '✅ Yes' : '❌ No'}</td>
                   <td>${u.firstVisit ? new Date(u.firstVisit).toLocaleString() : ''}</td>
                   <td>${u.banned ? '🚫 Banned' : (u.status === 'Live' ? '🟢 Live' : '🔴 Offline')}</td>
-                  <td style="text-align:right;"><button class="btn btn-danger" style="padding:0.4rem;" onclick="remove(ref(db, 'users/${k}'))">Delete Record</button></td>
+                  <td style="text-align:right;"><button class="btn btn-danger" style="padding:0.4rem;" onclick="remove(ref(db, 'users/${k}'))">Delete</button></td>
               </tr>`;
           });
       });
