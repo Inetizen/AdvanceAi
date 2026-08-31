@@ -76,11 +76,11 @@
   <div class="content">
 
     <div class="page active" id="aiQueuePage">
-      <h2>🤖 AI Video/Image Requests</h2>
-      <p style="color:var(--muted); font-size: 0.85rem;">Manage incoming prompts, and upload finished Videos OR Images back to user.</p>
+      <h2>🤖 AI Video Requests</h2>
+      <p style="color:var(--muted); font-size: 0.85rem;">Manage incoming video prompts, download images, and direct upload finished videos via DB Trick.</p>
       <div class="card-panel">
         <table>
-            <thead><tr><th style="width: 15%;">Device ID & Request #</th><th style="width: 35%;">Prompt & Image</th><th style="width: 15%;">Status</th><th style="width: 35%; text-align:right;">Actions / Media Upload</th></tr></thead>
+            <thead><tr><th style="width: 15%;">Device ID</th><th style="width: 35%;">Prompt & Image</th><th style="width: 15%;">Status</th><th style="width: 35%; text-align:right;">Actions / Media Upload</th></tr></thead>
             <tbody id="aiQueueTbody"></tbody>
         </table>
       </div>
@@ -165,7 +165,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, set, update, remove, onValue, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
+  
   const firebaseConfig = {
     apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
     authDomain: "ai-studio-b0c87.firebaseapp.com",
@@ -237,7 +237,7 @@
           const tb = document.getElementById('aiQueueTbody'); tb.innerHTML = '';
           const data = snap.val() || {}; 
           
-          // Count Requests Chronologically Per Device
+          // Request Counting Logic Per Device ID
           const chronologicalKeys = Object.keys(data);
           let deviceCounts = {};
           let reqNumbers = {};
@@ -248,7 +248,7 @@
               reqNumbers[k] = deviceCounts[dId];
           });
 
-          // Display Newest First
+          // Show newest first
           const requests = chronologicalKeys.reverse(); 
 
           for(let k of requests) {
@@ -283,16 +283,17 @@
                               <button class="btn btn-danger btn-full" style="padding:0.5rem;" onclick="sendAiError('${k}')">Send Error</button>
                           </div>
                           
-                          <!-- CLOUD UPLOAD BOX (Accepts Image OR Video) -->
+                          <!-- BASE64 DATABASE TRICK (Image or Video) -->
                           <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px solid rgba(45,198,83,0.3);">
-                              <label style="font-size:0.75rem; color:var(--green); font-weight:bold; display:block; margin-bottom:5px; text-align:left;">☁️ Auto Cloud Upload (Image/Video)</label>
+                              <label style="font-size:0.75rem; color:var(--green); font-weight:bold; display:block; margin-bottom:5px; text-align:left;">📁 Direct DB Upload (Image/Video < 4MB)</label>
+                              
                               <input type="file" id="file_${k}" accept="image/*,video/*" class="inp" style="padding:0.4rem; margin-bottom:5px; width:100%; box-sizing: border-box; font-size: 0.75rem; background: var(--surf3);">
                               
                               <div style="text-align:center; font-size:0.7rem; color:var(--muted); margin: 6px 0;">-- OR PASTE URL --</div>
                               
                               <input type="url" id="vid_${k}" class="inp" placeholder="Paste Media URL Here..." style="padding:0.6rem; margin-bottom:8px; font-size:0.85rem; width: 100%; box-sizing: border-box; text-align:left;">
                               
-                              <button class="btn btn-green btn-full" id="btn_${k}" style="padding:0.6rem; font-size:0.85rem;" onclick="handleMediaSubmit('${k}', '${req.deviceId}')">🚀 Upload & Send to User</button>
+                              <button class="btn btn-green btn-full" id="btn_${k}" style="padding:0.6rem; font-size:0.85rem;" onclick="handleVideoSubmit('${k}', '${req.deviceId}')">🚀 Upload & Send to User</button>
                               <div id="prog_${k}" style="color:var(--green); font-size:0.8rem; font-weight:bold; margin-top:5px; text-align:center; display:none;">0%</div>
                           </div>
                       ` : `<button class="btn btn-danger" onclick="deleteAiRequest('${k}')">🗑️ Delete Log</button>`}
@@ -314,8 +315,8 @@
           update(ref(db, `ai_requests/${id}`), { status: 'error', errorMsg: finalMsg });
       };
 
-      // NEW CLOUD API UPLOADER (Handles BOTH Images & Videos)
-      window.handleMediaSubmit = async (reqId, deviceId) => {
+      // BASE64 DATABASE TEXT UPLOAD HANDLER
+      window.handleVideoSubmit = async (reqId, deviceId) => {
           const fileInput = document.getElementById(`file_${reqId}`);
           const urlInput = document.getElementById(`vid_${reqId}`);
           const btn = document.getElementById(`btn_${reqId}`);
@@ -324,47 +325,45 @@
           if (fileInput.files.length > 0) {
               const file = fileInput.files[0];
               
-              btn.disabled = true;
-              btn.style.background = "#555";
-              btn.innerText = "Uploading to Cloud...";
-              prog.style.display = "block";
-              prog.innerText = "Uploading Media to Free Cloud Server...";
-
-              const formData = new FormData();
-              formData.append('file', file);
-
-              try {
-                  const response = await fetch('https://tmpfiles.org/api/v1/upload', {
-                      method: 'POST',
-                      body: formData
-                  });
-                  
-                  const result = await response.json();
-                  
-                  if(result.status === 'success') {
-                      prog.innerText = "Media Uploaded! Saving to Database...";
-                      
-                      const directUrl = result.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-                      
-                      await update(ref(db, `ai_requests/${reqId}`), { 
-                          status: 'completed', 
-                          videoUrl: directUrl, 
-                          errorMsg: '',
-                          watermarkText: `HotFake AI | User ID: ${deviceId}`
-                      });
-                      
-                      prog.innerText = "✅ Uploaded & Sent Successfully!";
-                      btn.style.display = "none";
-                  } else {
-                      throw new Error("Cloud server rejected the file.");
-                  }
-              } catch(err) {
-                  alert("Cloud Upload Failed: " + err.message + "\nTry pasting a URL instead.");
-                  btn.disabled = false; btn.style.background = "var(--green)"; btn.innerText = "🚀 Upload & Send to User";
-                  prog.style.display = "none";
+              // Safe Limit Check
+              const maxSizeMB = 4;
+              if (file.size > maxSizeMB * 1024 * 1024) {
+                  alert(`File is too large! Please keep it under ${maxSizeMB}MB to use the Database text trick, or paste a URL.`);
+                  return;
               }
 
+              btn.disabled = true;
+              btn.style.background = "#555";
+              btn.innerText = "Converting...";
+              prog.style.display = "block";
+              prog.innerText = "Encoding Media to Text (Please wait)...";
+
+              // Using setTimeout to let UI render the text above before freezing the thread
+              setTimeout(() => {
+                  const reader = new FileReader();
+                  reader.onload = function(e) {
+                      const base64Data = e.target.result;
+                      prog.innerText = "Saving to Database...";
+
+                      update(ref(db, `ai_requests/${reqId}`), { 
+                          status: 'completed', 
+                          videoUrl: base64Data, // Pushing Base64 string directly
+                          errorMsg: '',
+                          watermarkText: `HotFake AI | User ID: ${deviceId}`
+                      }).then(() => {
+                          prog.innerText = "✅ Uploaded Successfully!";
+                          btn.style.display = "none";
+                      }).catch(err => {
+                          alert("Database Error: File might be too large for text conversion! Error: " + err.message);
+                          btn.disabled = false; btn.style.background = "var(--green)"; btn.innerText = "🚀 Upload & Send to User";
+                          prog.style.display = "none";
+                      });
+                  };
+                  reader.readAsDataURL(file);
+              }, 500);
+
           } else if (urlInput.value.trim() !== "") {
+              // URL Paste Option
               update(ref(db, `ai_requests/${reqId}`), { 
                   status: 'completed', 
                   videoUrl: urlInput.value.trim(), 
@@ -372,7 +371,7 @@
                   watermarkText: `HotFake AI | User ID: ${deviceId}`
               });
           } else {
-              alert("Please select an Image or Video file to upload OR paste a direct URL.");
+              alert("Please select a file to upload OR paste a direct URL.");
           }
       };
 
@@ -535,3 +534,4 @@
 </script>
 </body>
 </html>
+
