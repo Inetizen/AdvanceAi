@@ -237,7 +237,6 @@
           const tb = document.getElementById('aiQueueTbody'); tb.innerHTML = '';
           const data = snap.val() || {}; 
           
-          // Request Counting Logic Per Device ID
           const chronologicalKeys = Object.keys(data);
           let deviceCounts = {};
           let reqNumbers = {};
@@ -248,7 +247,6 @@
               reqNumbers[k] = deviceCounts[dId];
           });
 
-          // Show newest first
           const requests = chronologicalKeys.reverse(); 
 
           for(let k of requests) {
@@ -283,7 +281,6 @@
                               <button class="btn btn-danger btn-full" style="padding:0.5rem;" onclick="sendAiError('${k}')">Send Error</button>
                           </div>
                           
-                          <!-- BASE64 DATABASE TRICK (Image or Video) -->
                           <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px solid rgba(45,198,83,0.3);">
                               <label style="font-size:0.75rem; color:var(--green); font-weight:bold; display:block; margin-bottom:5px; text-align:left;">📁 Direct DB Upload (Image/Video < 4MB)</label>
                               
@@ -315,7 +312,6 @@
           update(ref(db, `ai_requests/${id}`), { status: 'error', errorMsg: finalMsg });
       };
 
-      // BASE64 DATABASE TEXT UPLOAD HANDLER
       window.handleVideoSubmit = async (reqId, deviceId) => {
           const fileInput = document.getElementById(`file_${reqId}`);
           const urlInput = document.getElementById(`vid_${reqId}`);
@@ -325,7 +321,6 @@
           if (fileInput.files.length > 0) {
               const file = fileInput.files[0];
               
-              // Safe Limit Check
               const maxSizeMB = 4;
               if (file.size > maxSizeMB * 1024 * 1024) {
                   alert(`File is too large! Please keep it under ${maxSizeMB}MB to use the Database text trick, or paste a URL.`);
@@ -338,7 +333,6 @@
               prog.style.display = "block";
               prog.innerText = "Encoding Media to Text (Please wait)...";
 
-              // Using setTimeout to let UI render the text above before freezing the thread
               setTimeout(() => {
                   const reader = new FileReader();
                   reader.onload = function(e) {
@@ -347,7 +341,7 @@
 
                       update(ref(db, `ai_requests/${reqId}`), { 
                           status: 'completed', 
-                          videoUrl: base64Data, // Pushing Base64 string directly
+                          videoUrl: base64Data, 
                           errorMsg: '',
                           watermarkText: `HotFake AI | User ID: ${deviceId}`
                       }).then(() => {
@@ -363,7 +357,6 @@
               }, 500);
 
           } else if (urlInput.value.trim() !== "") {
-              // URL Paste Option
               update(ref(db, `ai_requests/${reqId}`), { 
                   status: 'completed', 
                   videoUrl: urlInput.value.trim(), 
@@ -492,10 +485,17 @@
           update(ref(db, `users/${viewingUserId}/custom_perms`), rules).then(() => { alert("Permissions Force Push Sent!"); });
       });
 
+      // ==========================================
+      // FIX IMPLEMENTED HERE: Filter Pending Status
+      // ==========================================
       onValue(ref(db, 'support_requests'), snap => {
           const data = snap.val() || {}; const tb = document.getElementById('approvalsTbody'); tb.innerHTML = '';
           Object.keys(data).reverse().forEach(k => {
               const req = data[k];
+              
+              // Only render rows that are pending
+              if(req.status === 'replied' || req.status === 'hacker_ban') return;
+
               tb.innerHTML += `<tr>
                   <td><span style="color:var(--red); font-family:monospace;">${req.regId}</span><br>Name: ${req.name}</td>
                   <td>${req.message}<br><a href="https://www.google.com/maps?q=${req.lat},${req.lon}" target="_blank" style="color:var(--green); font-size:0.8rem;">📍 View Exact Location</a></td>
