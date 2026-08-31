@@ -22,7 +22,7 @@
     .snav { flex:1; overflow-y:auto; } .snav-title { font-size:.72rem; color:var(--muted); font-weight:600; text-transform:uppercase; margin-top:.5rem; margin-bottom:.5rem;}
     .slink { display:flex; padding:.65rem .75rem; border-radius:10px; color:var(--muted); text-decoration:none; font-size:.9rem; cursor:pointer; }
     .slink:hover { background:var(--surf2); color:var(--text); } .slink.active { background:rgba(230,57,70,.15); color:var(--red); }
-    .content { margin-left:var(--sidebar); padding:2.5rem 2rem; min-height:100vh; }
+    .content { margin-left:var(--sidebar); padding:2.5rem 2rem; min-height:100vh; overflow-x: hidden; }
     .page { display:none; } .page.active { display:block; }
     .card-panel { background:var(--surf); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom: 1.5rem; overflow-x:auto;}
     
@@ -80,7 +80,8 @@
       <p style="color:var(--muted); font-size: 0.85rem;">Manage incoming video prompts, download reference images, and push results or errors.</p>
       <div class="card-panel">
         <table>
-            <thead><tr><th>Device ID</th><th style="width: 35%;">Prompt & Image</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead>
+            <!-- FIXED WIDTHS TO PREVENT SQUISHING -->
+            <thead><tr><th style="width: 15%;">Device ID</th><th style="width: 40%;">Prompt & Image</th><th style="width: 15%;">Status</th><th style="width: 30%; text-align:right;">Actions</th></tr></thead>
             <tbody id="aiQueueTbody"></tbody>
         </table>
       </div>
@@ -166,7 +167,6 @@
   import { getDatabase, ref, set, update, remove, onValue, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-  // CORRECTED API KEY FOR ADMIN LOGIN
   const firebaseConfig = {
     apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
     authDomain: "ai-studio-b0c87.firebaseapp.com",
@@ -207,7 +207,6 @@
       set(adminStatusRef, false).then(() => signOut(auth).then(() => location.reload())); 
   });
 
-  // --- GLOBAL DELETE HANDLERS ---
   window.deleteAiRequest = (key) => {
       if(confirm("Delete this AI request log from database?")) {
           remove(ref(db, `ai_requests/${key}`)).catch(err => alert("Error deleting: " + err.message));
@@ -256,20 +255,21 @@
                   <td style="text-align:right;">
                       ${req.status !== 'completed' ? `
                           <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; margin-bottom:10px;">
-                              <select id="errSelect_${k}" class="inp" style="padding:0.4rem; margin-bottom:5px;" onchange="toggleCustomErr('${k}')">
+                              <select id="errSelect_${k}" class="inp" style="padding:0.5rem; margin-bottom:8px; width: 100%; box-sizing: border-box;" onchange="toggleCustomErr('${k}')">
                                   <option value="">-- Select Error --</option>
                                   <option value="GPU Cluster Offline. Please try again later.">GPU Offline</option>
                                   <option value="Face not clearly visible in reference image.">Bad Image / No Face</option>
                                   <option value="NSFW content detected and blocked by filters.">NSFW Blocked</option>
                                   <option value="custom">Type Custom Error...</option>
                               </select>
-                              <input type="text" id="errInput_${k}" class="inp hidden" placeholder="Type custom error..." style="padding:0.4rem; margin-bottom:5px;">
-                              <button class="btn btn-danger btn-full" style="padding:0.4rem;" onclick="sendAiError('${k}')">Send Error</button>
+                              <input type="text" id="errInput_${k}" class="inp hidden" placeholder="Type custom error..." style="padding:0.5rem; margin-bottom:8px; width: 100%; box-sizing: border-box;">
+                              <button class="btn btn-danger btn-full" style="padding:0.5rem;" onclick="sendAiError('${k}')">Send Error</button>
                           </div>
                           
                           <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
-                              <input type="url" id="vid_${k}" class="inp" placeholder="Paste generated video URL" style="padding:0.4rem; margin-bottom:5px;">
-                              <button class="btn btn-green btn-full" style="padding:0.4rem;" onclick="uploadAiVideo('${k}')">Upload & Complete</button>
+                              <!-- FIXED INPUT BOX WIDTH -->
+                              <input type="url" id="vid_${k}" class="inp" placeholder="Paste Video URL Here..." style="padding:0.6rem; margin-bottom:8px; font-size:0.85rem; width: 100%; box-sizing: border-box; text-align:left;">
+                              <button class="btn btn-green btn-full" style="padding:0.6rem; font-size:0.85rem;" onclick="uploadAiVideo('${k}')">Upload & Complete</button>
                           </div>
                       ` : `<button class="btn btn-danger" onclick="deleteAiRequest('${k}')">🗑️ Delete Log</button>`}
                   </td>
