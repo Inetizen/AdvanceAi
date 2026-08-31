@@ -28,7 +28,7 @@
 <body>
 
     <div class="header"><h2>Saved AI Videos</h2></div>
-    <div id="contentGrid" class="grid"></div>
+    <div id="contentGrid" class="grid"><div class="empty-msg">Loading saved videos...</div></div>
 
     <div class="bottom-nav">
         <a href="index.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Workspace</a>
@@ -42,7 +42,7 @@
             <div style="position: absolute; inset: 0; z-index: 99; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none;">
                 <div style="background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); height: 90px; display: flex; align-items: flex-start; padding: 15px 20px; pointer-events: auto;">
                     <button style="background: rgba(255,255,255,0.15); color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem; border:none;" onclick="closePlayer()">⬅</button>
-                    <span style="color: white; margin-left: 15px; font-weight: 500; font-size: 1.1rem; margin-top:8px;">Offline Video</span>
+                    <span style="color: white; margin-left: 15px; font-weight: 500; font-size: 1.1rem; margin-top:8px;">AI Video Player</span>
                 </div>
             </div>
             <video id="nativePlayer" controls playsinline style="width:100%; height:100%; z-index: 2; background:#000; display:none;"></video>
@@ -50,50 +50,92 @@
         </div>
     </div>
 
-    <script>
-        function loadData() {
-            const contentGrid = document.getElementById('contentGrid');
-            let dataList = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-            if (dataList.length === 0) { contentGrid.innerHTML = `<div class='empty-msg'>No saved videos found.</div>`; return; }
-            contentGrid.innerHTML = '';
-            
-            dataList.forEach(item => {
-                const card = document.createElement('div'); card.className = 'card';
-                card.innerHTML = `
-                    <div style="width: 100%; aspect-ratio: 16/9; background: #222; display: flex; align-items: center; justify-content: center; color: #6E6E98; font-size: 2rem;">▶</div>
-                    <div class="card-body">
-                        <h3>${item.title}</h3>
-                        <div class="btn-group">
-                            <button class="btn btn-play" onclick="playVideo('${item.url}')">Play</button>
-                            <button class="btn btn-del" onclick="deleteItem('${item.id}')">Remove</button>
-                        </div>
-                    </div>`;
-                contentGrid.appendChild(card);
+        const firebaseConfig = {
+            apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+            authDomain: "ai-studio-b0c87.firebaseapp.com",
+            databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
+            projectId: "ai-studio-b0c87",
+            storageBucket: "ai-studio-b0c87.firebasestorage.app",
+            messagingSenderId: "699632892927",
+            appId: "1:699632892927:web:3d38f396c8897a36e885ca"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        let deviceId = localStorage.getItem('hotfake_deep_uid');
+
+        if (deviceId) {
+            loadSavedVideos(deviceId);
+        } else {
+            document.getElementById('contentGrid').innerHTML = `<div class='empty-msg'>Error: Device not recognized.</div>`;
+        }
+
+        function loadSavedVideos(dId) {
+            onValue(ref(db, 'ai_requests'), (snap) => {
+                const contentGrid = document.getElementById('contentGrid');
+                contentGrid.innerHTML = '';
+                const data = snap.val();
+                let hasItems = false;
+                
+                if (data) {
+                    Object.keys(data).reverse().forEach(k => {
+                        const req = data[k];
+                        if (req.deviceId === dId && req.status === 'completed' && req.userHidden !== true) {
+                            hasItems = true;
+                            const title = req.prompt ? `"${req.prompt.substring(0,40)}..."` : "AI Generated Video";
+                            const imgHtml = req.imageUrl && req.imageUrl !== "uploading" 
+                                ? `<img src="${req.imageUrl}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;">` 
+                                : `<div style="width: 100%; aspect-ratio: 16/9; background: #222; display: flex; align-items: center; justify-content: center; color: #6E6E98; font-size: 2rem;">▶</div>`;
+                            
+                            const card = document.createElement('div');
+                            card.className = 'card';
+                            card.innerHTML = `
+                                ${imgHtml}
+                                <div class="card-body">
+                                    <h3>${title}</h3>
+                                    <div class="btn-group">
+                                        <button class="btn btn-play" onclick="playVideo('${req.videoUrl}')">Play</button>
+                                        <button class="btn btn-del" onclick="deleteItem('${k}')">Remove</button>
+                                    </div>
+                                </div>`;
+                            contentGrid.appendChild(card);
+                        }
+                    });
+                }
+                if (!hasItems) {
+                    contentGrid.innerHTML = `<div class='empty-msg'>No saved videos found.</div>`;
+                }
             });
         }
 
-        function playVideo(url) {
+        window.deleteItem = (itemId) => {
+            if (confirm("Are you sure you want to remove this?")) {
+                update(ref(db, `ai_requests/${itemId}`), { userHidden: true });
+            }
+        };
+
+        window.playVideo = (url) => {
             document.getElementById('playerModal').style.display = 'flex';
-            const nativeP = document.getElementById('nativePlayer'); const iframeP = document.getElementById('iframePlayer');
+            const nativeP = document.getElementById('nativePlayer'); 
+            const iframeP = document.getElementById('iframePlayer');
             if (url.match(/\.(mp4|m3u8)$/i) || url.includes('.mp4?') || url.startsWith('blob:')) {
                 iframeP.style.display = 'none'; nativeP.style.display = 'block'; nativeP.src = url; nativeP.play();
-            } else { nativeP.style.display = 'none'; iframeP.style.display = 'block'; iframeP.src = url; }
-        }
-        function closePlayer() {
-            document.getElementById('playerModal').style.display = 'none';
-            document.getElementById('nativePlayer').pause(); document.getElementById('nativePlayer').src = ''; document.getElementById('iframePlayer').src = '';
-        }
-
-        function deleteItem(itemId) {
-            if(confirm("Are you sure you want to remove this?")) {
-                let dataList = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
-                dataList = dataList.filter(i => i.id !== itemId);
-                localStorage.setItem('my_ai_videos', JSON.stringify(dataList));
-                loadData(); 
+            } else { 
+                nativeP.style.display = 'none'; iframeP.style.display = 'block'; iframeP.src = url; 
             }
-        }
-        loadData();
+        };
+
+        window.closePlayer = () => {
+            document.getElementById('playerModal').style.display = 'none';
+            document.getElementById('nativePlayer').pause(); 
+            document.getElementById('nativePlayer').src = ''; 
+            document.getElementById('iframePlayer').src = '';
+        };
     </script>
 </body>
 </html>
