@@ -3,139 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saved AI Videos - HotFake</title>
+    <meta name="theme-color" content="#07070F">
+    <title>Saved Output - HotFake AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #07070F; color: #F0F0FF; font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; padding-bottom: 90px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 15px; }
-        .header h2 { margin: 0; font-size: 1.5rem; font-weight: 700; color: #E63946;}
+        :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --green: #2DC653; --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); }
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .card { background: #181828; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.07); }
-        .card-body { padding: 12px; }
-        .card-body h3 { font-size: 0.85rem; margin: 0 0 10px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-        .btn-group { display: flex; gap: 5px; }
-        .btn { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.75rem; font-family: inherit;}
-        .btn-play { background: #E63946; color: white; }
-        .btn-del { background: rgba(255,255,255,0.1); color: white; }
-        .empty-msg { text-align: center; color: rgba(255,255,255,0.5); margin-top: 50px; font-size: 0.9rem; grid-column: 1 / -1; }
+        header { background: rgba(7,7,15,0.88); backdrop-filter: blur(18px); padding: 1.2rem; border-bottom: 1px solid var(--border); position: sticky; top:0; z-index: 100; }
+        h2 { margin: 0; font-size: 1.5rem; color: var(--red); }
+        
+        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        
+        .vid-card { background: var(--surf2); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); display: flex; flex-direction: column; }
+        .vid-thumb { height: 100px; background: var(--surf); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #333; position: relative; }
+        .vid-info { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .vid-title { font-size: 0.85rem; color: #fff; font-weight: 500; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vid-time { font-size: 0.65rem; color: var(--muted); margin-bottom: 12px; }
+        
+        .action-row { display: flex; gap: 8px; }
+        .btn-small { flex: 1; padding: 8px 0; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; text-decoration: none; font-family: 'Poppins', sans-serif;}
+        .btn-play { background: var(--red); }
+        .btn-down { background: var(--green); }
+        .btn-del { background: var(--surf); border: 1px solid var(--border); color: #ff8c94; }
+        
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 0.9rem; }
+        
+        /* Modal Video Player Styling */
+        #playerModal { display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column; touch-action: none !important;}
+        .player-wrapper { flex:1; display:flex; justify-content:center; align-items:center; width:100vw; height:100vh; position:relative; background: #000; }
+        #iframePlayer { width: 100%; height: 100%; border: none; z-index: 1; display:none; }
+        #nativePlayer { width: 100%; height: 100%; z-index: 2; background:#000; display:none; }
+        #nativeImagePlayer { display:none; max-width:100%; max-height:100%; object-fit:contain; z-index:2; position:relative; }
+        
+        .smart-overlay { position: absolute; inset: 0; z-index: 99; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+        .glass-top { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); height: 90px; display: flex; align-items: flex-start; padding: 15px 20px; pointer-events: auto; }
+        .ui-back-btn { background: rgba(255,255,255,0.15); color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; cursor: pointer; border:none;}
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,15,28,0.95); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #6E6E98; text-decoration: none; font-size: 0.7rem; font-weight: 500; gap: 4px; transition: color 0.2s;}
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,15,28,0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--muted); text-decoration: none; font-size: 0.7rem; font-weight: 500; gap: 4px; }
         .nav-item.active { color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="header"><h2>Saved AI Videos</h2></div>
-    <div id="contentGrid" class="grid"><div class="empty-msg">Loading saved videos...</div></div>
+<header><h2>Saved AI Videos</h2></header>
 
-    <div class="bottom-nav">
-        <a href="index.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Workspace</a>
-        <a href="profile.html" class="nav-item active"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Saved</a>
-        <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Device Auth</a>
+<div class="container">
+    <div class="grid" id="videoGrid"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+        <div style="font-size: 3rem; margin-bottom: 10px;">📭</div>
+        You haven't generated any videos yet.
     </div>
+</div>
 
-    <!-- SECURE PLAYER INSIDE PROFILE -->
-    <div id="playerModal" style="display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column;">
-        <div style="flex:1; display:flex; justify-content:center; align-items:center; width:100vw; height:100vh; position:relative; background: #000;">
-            <div style="position: absolute; inset: 0; z-index: 99; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none;">
-                <div style="background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); height: 90px; display: flex; align-items: flex-start; padding: 15px 20px; pointer-events: auto;">
-                    <button style="background: rgba(255,255,255,0.15); color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem; border:none;" onclick="closePlayer()">⬅</button>
-                    <span style="color: white; margin-left: 15px; font-weight: 500; font-size: 1.1rem; margin-top:8px;">AI Video Player</span>
-                </div>
-            </div>
-            <video id="nativePlayer" controls playsinline style="width:100%; height:100%; z-index: 2; background:#000; display:none;"></video>
-            <iframe id="iframePlayer" allowfullscreen style="width:100%; height:100%; border:none; z-index:1; display:none;"></iframe>
-        </div>
-    </div>
+<!-- SMART MEDIA PLAYER -->
+<div id="playerModal">
+  <div class="player-wrapper">
+       <div class="smart-overlay">
+           <div class="glass-top">
+               <div style="display:flex; align-items:center;">
+                   <button class="ui-back-btn" onclick="closePlayer()">⬅</button>
+                   <span style="margin-left:15px; color:white; font-weight:bold; font-size: 0.9rem;">Playback</span>
+               </div>
+           </div>
+       </div>
+       <video id="nativePlayer" controls playsinline></video>
+       <img id="nativeImagePlayer" alt="AI Generated Output">
+       <iframe id="iframePlayer" allowfullscreen></iframe>
+  </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Generate</a>
+    <a href="profile.html" class="nav-item active"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Saved</a>
+    <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Auth</a>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
-            authDomain: "ai-studio-b0c87.firebaseapp.com",
-            databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
-            projectId: "ai-studio-b0c87",
-            storageBucket: "ai-studio-b0c87.firebasestorage.app",
-            messagingSenderId: "699632892927",
-            appId: "1:699632892927:web:3d38f396c8897a36e885ca"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+<script>
+    function loadVideos() {
+        const grid = document.getElementById('videoGrid');
+        const emptyState = document.getElementById('emptyState');
+        const vids = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
         
-        let deviceId = localStorage.getItem('hotfake_deep_uid');
+        grid.innerHTML = '';
+        
+        // Filter out items where the URL is empty (Still processing/error)
+        const completedVids = vids.filter(v => v.url && v.url.trim() !== "");
 
-        if (deviceId) {
-            loadSavedVideos(deviceId);
+        if(completedVids.length === 0) {
+            emptyState.style.display = 'block';
         } else {
-            document.getElementById('contentGrid').innerHTML = `<div class='empty-msg'>Error: Device not recognized.</div>`;
-        }
-
-        function loadSavedVideos(dId) {
-            onValue(ref(db, 'ai_requests'), (snap) => {
-                const contentGrid = document.getElementById('contentGrid');
-                contentGrid.innerHTML = '';
-                const data = snap.val();
-                let hasItems = false;
+            emptyState.style.display = 'none';
+            // Show newest first
+            completedVids.reverse().forEach((v, idx) => {
+                // Find actual original index for removal
+                const originalIndex = vids.findIndex(orig => orig.id === v.id);
                 
-                if (data) {
-                    Object.keys(data).reverse().forEach(k => {
-                        const req = data[k];
-                        if (req.deviceId === dId && req.status === 'completed' && req.userHidden !== true) {
-                            hasItems = true;
-                            const title = req.prompt ? `"${req.prompt.substring(0,40)}..."` : "AI Generated Video";
-                            const imgHtml = req.imageUrl && req.imageUrl !== "uploading" 
-                                ? `<img src="${req.imageUrl}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;">` 
-                                : `<div style="width: 100%; aspect-ratio: 16/9; background: #222; display: flex; align-items: center; justify-content: center; color: #6E6E98; font-size: 2rem;">▶</div>`;
-                            
-                            const card = document.createElement('div');
-                            card.className = 'card';
-                            card.innerHTML = `
-                                ${imgHtml}
-                                <div class="card-body">
-                                    <h3>${title}</h3>
-                                    <div class="btn-group">
-                                        <button class="btn btn-play" onclick="playVideo('${req.videoUrl}')">Play</button>
-                                        <button class="btn btn-del" onclick="deleteItem('${k}')">Remove</button>
-                                    </div>
-                                </div>`;
-                            contentGrid.appendChild(card);
-                        }
-                    });
-                }
-                if (!hasItems) {
-                    contentGrid.innerHTML = `<div class='empty-msg'>No saved videos found.</div>`;
-                }
+                grid.innerHTML += `
+                    <div class="vid-card">
+                        <div class="vid-thumb">🎥</div>
+                        <div class="vid-info">
+                            <div>
+                                <div class="vid-title">"${v.title}"</div>
+                                <div class="vid-time">${new Date(v.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div class="action-row">
+                                <button class="btn-small btn-play" onclick="playVid('${v.url}')">▶ Play</button>
+                                <a href="${v.url}" download class="btn-small btn-down">⬇ Dwnld</a>
+                            </div>
+                            <button class="btn-small btn-del" style="margin-top:8px;" onclick="removeVid(${originalIndex})">🗑 Remove</button>
+                        </div>
+                    </div>
+                `;
             });
         }
+    }
 
-        window.deleteItem = (itemId) => {
-            if (confirm("Are you sure you want to remove this?")) {
-                update(ref(db, `ai_requests/${itemId}`), { userHidden: true });
-            }
-        };
+    window.removeVid = (index) => {
+        if(confirm("Remove this item from your saved list?")) {
+            let vids = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
+            vids.splice(index, 1);
+            localStorage.setItem('my_ai_videos', JSON.stringify(vids));
+            loadVideos(); // Refresh UI
+        }
+    };
 
-        window.playVideo = (url) => {
-            document.getElementById('playerModal').style.display = 'flex';
-            const nativeP = document.getElementById('nativePlayer'); 
-            const iframeP = document.getElementById('iframePlayer');
-            if (url.match(/\.(mp4|m3u8)$/i) || url.includes('.mp4?') || url.startsWith('blob:')) {
-                iframeP.style.display = 'none'; nativeP.style.display = 'block'; nativeP.src = url; nativeP.play();
-            } else { 
-                nativeP.style.display = 'none'; iframeP.style.display = 'block'; iframeP.src = url; 
-            }
-        };
+    window.playVid = (url) => {
+        document.body.style.overflow = 'hidden'; 
+        document.getElementById('playerModal').style.display = 'flex';
+        
+        const nativeP = document.getElementById('nativePlayer'); 
+        const iframeP = document.getElementById('iframePlayer');
+        const nativeImg = document.getElementById('nativeImagePlayer');
+        
+        nativeP.style.display = 'none'; iframeP.style.display = 'none'; nativeImg.style.display = 'none';
 
-        window.closePlayer = () => {
-            document.getElementById('playerModal').style.display = 'none';
-            document.getElementById('nativePlayer').pause(); 
-            document.getElementById('nativePlayer').src = ''; 
-            document.getElementById('iframePlayer').src = '';
-        };
-    </script>
+        if (url.startsWith('data:image') || url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+            nativeImg.style.display = 'block'; nativeImg.src = url;
+        } else if (url.startsWith('data:video') || url.match(/\.(mp4|m3u8|webm)$/i) || url.includes('.mp4?')) {
+            nativeP.style.display = 'block'; nativeP.src = url; nativeP.play().catch(e=>{});
+        } else {
+            iframeP.style.display = 'block'; iframeP.src = url;
+        }
+    };
+
+    window.closePlayer = () => {
+        document.getElementById('playerModal').style.display = 'none'; 
+        document.body.style.overflow = '';
+        document.getElementById('nativePlayer').pause(); 
+        document.getElementById('nativePlayer').src = ''; 
+        document.getElementById('iframePlayer').src = '';
+        document.getElementById('nativeImagePlayer').src = '';
+    };
+
+    // Initialize Page
+    loadVideos();
+</script>
 </body>
 </html>
