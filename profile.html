@@ -49,7 +49,7 @@
 </head>
 <body>
 
-<header><h2>Saved AI Videos</h2></header>
+<header><h2>Generate history</h2></header>
 
 <div class="container">
     <div class="grid" id="videoGrid"></div>
@@ -59,7 +59,6 @@
     </div>
 </div>
 
-<!-- SMART MEDIA PLAYER -->
 <div id="playerModal">
   <div class="player-wrapper">
        <div class="smart-overlay">
@@ -112,7 +111,7 @@
                             </div>
                             <div class="action-row">
                                 <button class="btn-small btn-play" onclick="playVid('${v.url}')">▶ Play</button>
-                                <a href="${v.url}" download class="btn-small btn-down">⬇ Dwnld</a>
+                                <a href="${v.url}" download class="btn-small btn-down">⬇ Download</a>
                             </div>
                             <button class="btn-small btn-del" style="margin-top:8px;" onclick="removeVid(${originalIndex})">🗑 Remove</button>
                         </div>
@@ -164,3 +163,4 @@
 </script>
 </body>
 </html>
+
