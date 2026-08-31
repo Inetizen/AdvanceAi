@@ -1,1 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Device Authorization - HotFake AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; background: #07070F; color: #F0F0FF; font-family: 'Poppins', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 20px; box-sizing: border-box; }
+        
+        .box { background: #181828; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 35px 25px; width: 100%; max-width: 420px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .box h2 { margin-top: 0; color: #E63946; font-size: 1.5rem; letter-spacing: -0.5px; }
+        .box p { color: #a5a5b5; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5; }
+        
+        .inp { width: 100%; padding: 14px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-family: var(--font); margin-bottom: 15px; outline: none; box-sizing: border-box; font-size: 0.95rem;}
+        .inp:focus { border-color: #E63946; box-shadow: 0 0 0 3px rgba(230,57,70,0.2); }
+        textarea.inp { resize: vertical; min-height: 100px; }
+        
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; background: #E63946; color: white; transition: transform 0.2s, background 0.2s; font-family: 'Poppins', sans-serif; }
+        .btn:hover { transform: scale(1.02); background: #c1121f; }
+        .btn-green { background: #2DC653; }
+        .btn-green:hover { background: #25a244; }
+        
+        /* Sections Visibility */
+        #loaderSection, #unauthorizedSection, #waitingSection, #approvedSection, #hackerSection { display: none; }
+        
+        .icon-large { font-size: 4rem; margin-bottom: 15px; display: block; }
+        .alert-box { background: rgba(230, 57, 70, 0.1); border-left: 4px solid #E63946; padding: 15px; text-align: left; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
+        .alert-box h4 { margin: 0 0 5px 0; color: #E63946; font-size: 0.9rem; text-transform: uppercase; }
+        .alert-box p { color: #fff; margin: 0; font-size: 0.85rem; }
 
+        .hacker-box { background: rgba(230, 57, 70, 0.1); border: 1px solid #E63946; padding: 20px; border-radius: 12px; }
+        .hacker-box h3 { color: #E63946; margin-top: 10px; font-weight: 800; letter-spacing: 1px; }
+
+        .dev-id-text { font-family: monospace; color: var(--muted); font-size: 0.75rem; margin-top: 15px; display: block; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px;}
+        .back-link { display: inline-block; margin-top: 25px; color: #6E6E98; text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+        .back-link:hover { color: #fff; }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <!-- 1. LOADING -->
+        <div id="loaderSection">
+            <span class="icon-large" style="animation: spin 2s infinite linear;">⚙️</span>
+            <h3>Deep Scanning Device...</h3>
+            <p>Verifying hardware fingerprints and administrator permissions.</p>
+        </div>
+
+        <!-- 2. UNAUTHORIZED / NEW DEVICE FORM -->
+        <div id="unauthorizedSection">
+            <span class="icon-large">🔒</span>
+            <h2>Device Not Allowed</h2>
+            
+            <div class="alert-box">
+                <h4>Error: Unrecognized Device</h4>
+                <p>The Administrator has not allowed your device to use the AI Generator content. You must submit an application to gain access.</p>
+            </div>
+
+            <input type="text" id="authName" class="inp" placeholder="Your Full Name">
+            <textarea id="authMsg" class="inp" placeholder="Why do you need access to the AI Generator? (Provide valid reason)"></textarea>
+            <button class="btn" id="submitBtn" onclick="submitAuthRequest()">📍 Verify GPS & Request Access</button>
+            <span class="dev-id-text" id="displayDevId">ID: Loading...</span>
+        </div>
+
+        <!-- 3. WAITING FOR ADMIN -->
+        <div id="waitingSection">
+            <span class="icon-large">🕒</span>
+            <h2 style="color: #F0F0FF;">Application Pending</h2>
+            <p>Your authorization request has been sent to the Administrator. Please wait until your device is reviewed and allowed.</p>
+            <p style="font-size: 0.75rem; color: #E63946; font-weight: 600;">Check back on this page later.</p>
+        </div>
+
+        <!-- 4. APPROVED SECTION -->
+        <div id="approvedSection">
+            <span class="icon-large">✅</span>
+            <h2 style="color: #2DC653;">Access Granted</h2>
+            <p>The Administrator has approved your device. You can now access the AI Video Generator and content.</p>
+            <button class="btn btn-green" onclick="window.location.href='index.html'">Enter Website</button>
+        </div>
+
+        <!-- 5. HACKER / PERMANENT BAN -->
+        <div id="hackerSection">
+            <div class="hacker-box">
+                <span class="icon-large">☠️</span>
+                <h3>PERMANENTLY BANNED</h3>
+                <p style="color: #fff; font-weight: 500;">Your hardware fingerprint has been flagged by the security system.</p>
+                <p style="font-size: 0.8rem; color: #ff8c94;">No further appeals will be accepted.</p>
+            </div>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-link">← Return to Workspace</a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, get, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8",
+            authDomain: "inshelp-f2cba.firebaseapp.com",
+            databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com",
+            projectId: "inshelp-f2cba"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let deviceId = null;
+
+        // --- 1. DEEP FINGERPRINT DETECTION LOGIC ---
+        function getDeepDeviceId() {
+            let savedId = localStorage.getItem('hotfake_deep_uid');
+            if (savedId) return savedId;
+
+            // WebGL Scan
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            let glInfo = "Unknown_GPU";
+            if(gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                glInfo = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "Unknown";
+            }
+
+            // Canvas Drawing Scan
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = "top"; ctx.font = "14px 'Arial'"; ctx.fillStyle = "#f60";
+            ctx.fillRect(125,1,62,20); ctx.fillStyle = "#069"; ctx.fillText("HotFake Security", 2, 15);
+            const dataURL = canvas.toDataURL();
+            let cHash = 0;
+            for (let i = 0; i < dataURL.length; i++) { cHash = ((cHash << 5) - cHash) + dataURL.charCodeAt(i); cHash |= 0; }
+
+            // Hardware & OS Scan
+            const hw = navigator.hardwareConcurrency + "-" + navigator.deviceMemory;
+            const os = (/Android/i.test(navigator.userAgent)) ? "AND" : (/iPhone|iPad/i.test(navigator.userAgent)) ? "IOS" : "PC";
+            const screenStr = window.screen.width + "x" + window.screen.height;
+
+            const raw = `${hw}-${glInfo}-${cHash}-${os}-${screenStr}`;
+            let finalHash = 0;
+            for(let i=0; i<raw.length; i++) { finalHash = ((finalHash<<5)-finalHash)+raw.charCodeAt(i); }
+
+            let newId = `${os}-AUTH-${Math.abs(finalHash).toString(36).toUpperCase()}`;
+            
+            localStorage.setItem('hotfake_deep_uid', newId);
+            localStorage.setItem('hotfake_uid', newId); // Sync with main app
+            return newId;
+        }
+
+        // --- 2. INITIALIZE & CHECK STATUS ---
+        function initPage() {
+            showSection('loaderSection');
+            deviceId = getDeepDeviceId();
+            document.getElementById('displayDevId').innerText = `Hardware ID: ${deviceId}`;
+
+            // Check User Node for Bans or Pre-Approval
+            get(ref(db, `users/${deviceId}`)).then(userSnap => {
+                if(userSnap.exists()) {
+                    const u = userSnap.val();
+                    if(u.banned) { showSection('hackerSection'); return; }
+                    if(u.deviceApproved) { showSection('approvedSection'); return; }
+                }
+
+                // If not pre-approved, check if there is an active Application
+                onValue(ref(db, `support_requests/${deviceId}`), (snap) => {
+                    if (!snap.exists()) {
+                        // New Device - Show Application Form
+                        showSection('unauthorizedSection');
+                    } else {
+                        const req = snap.val();
+                        
+                        if (req.status === 'replied') {
+                            // Admin clicked "Reply" in panel -> We mark device as Approved!
+                            update(ref(db, `users/${deviceId}`), { deviceApproved: true }).then(() => {
+                                // Clear the ticket and show approval
+                                remove(ref(db, `support_requests/${deviceId}`)).then(() => {
+                                    showSection('approvedSection');
+                                });
+                            });
+                        } else if (req.status === 'hacker_ban') {
+                            showSection('hackerSection');
+                        } else {
+                            // Still Pending
+                            showSection('waitingSection');
+                        }
+                    }
+                });
+                
+            }).catch(e => {
+                showSection('unauthorizedSection');
+            });
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('#loaderSection, #unauthorizedSection, #waitingSection, #approvedSection, #hackerSection')
+                .forEach(el => el.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+        }
+
+        // --- 3. SUBMIT AUTHORIZATION APPLICATION ---
+        window.submitAuthRequest = function() {
+            const name = document.getElementById('authName').value.trim();
+            const msg = document.getElementById('authMsg').value.trim();
+            const btn = document.getElementById('submitBtn');
+
+            if (!name || !msg) return alert("Please provide your name and a valid reason for access.");
+
+            btn.innerText = "📍 Scanning Location...";
+            btn.disabled = true;
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    
+                    // Create Application Data (Formatted so Admin can easily read it)
+                    const appData = { 
+                        name: name, 
+                        contactInfo: "DEVICE AUTHORIZATION", 
+                        message: `[NEW DEVICE ACCESS] Reason: ${msg}`, 
+                        regId: deviceId, 
+                        os: navigator.platform || "Unknown", 
+                        lat: pos.coords.latitude, 
+                        lon: pos.coords.longitude, 
+                        time: new Date().toISOString(),
+                        status: 'pending'
+                    };
+                    
+                    set(ref(db, `support_requests/${deviceId}`), appData).then(() => { 
+                        // The onValue listener above will instantly switch to 'waitingSection'
+                    }).catch(err => {
+                        alert("Submission blocked. Please ensure network is stable.");
+                        btn.innerText = "📍 Verify GPS & Request Access";
+                        btn.disabled = false;
+                    });
+
+                }, (error) => {
+                    alert("GPS MUST BE ALLOWED to verify your physical location for security.");
+                    btn.innerText = "📍 Verify GPS & Request Access";
+                    btn.disabled = false;
+                }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+            } else {
+                alert("GPS Not Supported on this hardware.");
+                btn.disabled = false;
+            }
+        };
+
+        // Start Logic
+        setTimeout(initPage, 800); // Slight delay for realistic scanning effect
+    </script>
+</body>
+</html>
