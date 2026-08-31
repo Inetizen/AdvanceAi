@@ -77,7 +77,7 @@
 
     <div class="page active" id="aiQueuePage">
       <h2>🤖 AI Video Requests</h2>
-      <p style="color:var(--muted); font-size: 0.85rem;">Manage incoming video prompts, download images, and direct upload finished videos.</p>
+      <p style="color:var(--muted); font-size: 0.85rem;">Manage incoming video prompts, download images, and direct upload finished videos via DB Trick.</p>
       <div class="card-panel">
         <table>
             <thead><tr><th style="width: 15%;">Device ID</th><th style="width: 35%;">Prompt & Image</th><th style="width: 15%;">Status</th><th style="width: 35%; text-align:right;">Actions / Video Upload</th></tr></thead>
@@ -165,7 +165,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, set, update, remove, onValue, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+  
+  // Storage module hata diya gaya hai. Sirf Database use hoga.
 
   const firebaseConfig = {
     apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
@@ -180,7 +181,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth(app); 
-  const storage = getStorage(app);
   const adminStatusRef = ref(db, 'settings/admin_status');
 
   let allUsersRaw = {};
@@ -267,9 +267,9 @@
                               <button class="btn btn-danger btn-full" style="padding:0.5rem;" onclick="sendAiError('${k}')">Send Error</button>
                           </div>
                           
-                          <!-- ADVANCED UPLOAD BOX (File Upload OR URL Paste) -->
+                          <!-- BASE64 DATABASE UPLOAD BOX -->
                           <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px solid rgba(45,198,83,0.3);">
-                              <label style="font-size:0.75rem; color:var(--green); font-weight:bold; display:block; margin-bottom:5px; text-align:left;">📁 Direct Video Upload (MP4)</label>
+                              <label style="font-size:0.75rem; color:var(--green); font-weight:bold; display:block; margin-bottom:5px; text-align:left;">📁 Direct DB Video Upload (< 3MB)</label>
                               <input type="file" id="file_${k}" accept="video/mp4,video/webm,video/*" class="inp" style="padding:0.4rem; margin-bottom:5px; width:100%; box-sizing: border-box; font-size: 0.75rem; background: var(--surf3);">
                               
                               <div style="text-align:center; font-size:0.7rem; color:var(--muted); margin: 6px 0;">-- OR PASTE URL --</div>
@@ -298,7 +298,7 @@
           update(ref(db, `ai_requests/${id}`), { status: 'error', errorMsg: finalMsg });
       };
 
-      // NEW ADVANCED FIREBASE STORAGE UPLOAD HANDLER
+      // BASE64 VIDEO UPLOAD TRICK HANDLER
       window.handleVideoSubmit = async (reqId, deviceId) => {
           const fileInput = document.getElementById(`file_${reqId}`);
           const urlInput = document.getElementById(`vid_${reqId}`);
@@ -306,44 +306,44 @@
           const prog = document.getElementById(`prog_${reqId}`);
 
           if (fileInput.files.length > 0) {
-              // Option 1: File Selected -> Upload to Firebase Storage
               const file = fileInput.files[0];
+              
+              // Saftey limit: 3MB max for RTDB Base64 upload
+              const maxSizeMB = 3;
+              if (file.size > maxSizeMB * 1024 * 1024) {
+                  alert(`Video file is too large! Please keep it under ${maxSizeMB}MB to use the Database trick, or compress it.`);
+                  return;
+              }
+
               btn.disabled = true;
               btn.style.background = "#555";
-              btn.innerText = "Processing...";
+              btn.innerText = "Converting...";
               prog.style.display = "block";
-              prog.innerText = "Connecting to Storage...";
+              prog.innerText = "Encoding Video to Text (Please wait)...";
 
-              const storageRef = sRef(storage, `generated_videos/${reqId}_${Date.now()}.mp4`);
-              const uploadTask = uploadBytesResumable(storageRef, file);
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                  const base64Video = e.target.result;
+                  prog.innerText = "Saving to Database...";
 
-              uploadTask.on('state_changed', 
-                  (snapshot) => {
-                      const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                      prog.innerText = `Uploading Securely: ${progress}%`;
-                  }, 
-                  (error) => {
-                      alert("Upload Error: " + error.message);
+                  update(ref(db, `ai_requests/${reqId}`), { 
+                      status: 'completed', 
+                      videoUrl: base64Video, // Pushing Base64 string directly
+                      errorMsg: '',
+                      watermarkText: `HotFake AI | User ID: ${deviceId}`
+                  }).then(() => {
+                      prog.innerText = "✅ Uploaded Successfully!";
+                      btn.style.display = "none";
+                  }).catch(err => {
+                      alert("Database Error: Video might be too large! Try a smaller file or paste URL. Error: " + err.message);
                       btn.disabled = false; btn.style.background = "var(--green)"; btn.innerText = "🚀 Upload & Send to User";
                       prog.style.display = "none";
-                  }, 
-                  () => {
-                      prog.innerText = "Baking Device Watermark...";
-                      getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                          // Saves the URL and the embedded Device Watermark String
-                          update(ref(db, `ai_requests/${reqId}`), { 
-                              status: 'completed', 
-                              videoUrl: downloadURL, 
-                              errorMsg: '',
-                              watermarkText: `HotFake AI | User ID: ${deviceId}`
-                          }).then(() => {
-                              prog.innerText = "✅ Uploaded Successfully!";
-                          });
-                      });
-                  }
-              );
+                  });
+              };
+              reader.readAsDataURL(file);
+
           } else if (urlInput.value.trim() !== "") {
-              // Option 2: No File, URL Pasted
+              // URL Paste Option
               update(ref(db, `ai_requests/${reqId}`), { 
                   status: 'completed', 
                   videoUrl: urlInput.value.trim(), 
@@ -351,7 +351,7 @@
                   watermarkText: `HotFake AI | User ID: ${deviceId}`
               });
           } else {
-              alert("Please select a video file to upload OR paste a direct URL.");
+              alert("Please select a small video file to upload OR paste a direct URL.");
           }
       };
 
@@ -514,3 +514,4 @@
 </script>
 </body>
 </html>
+
