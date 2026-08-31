@@ -166,8 +166,9 @@
   import { getDatabase, ref, set, update, remove, onValue, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
+  // CORRECTED API KEY FOR ADMIN LOGIN
   const firebaseConfig = {
-    apiKey: "AIzaSyAI3ysLR_LFnG5dw2SY8AwF1ldGgc43ywE",
+    apiKey: "AIzaSyAI3ysLR_lFaG5dw2SY8AwF1ldGgc43ywE",
     authDomain: "ai-studio-b0c87.firebaseapp.com",
     databaseURL: "https://ai-studio-b0c87-default-rtdb.firebaseio.com",
     projectId: "ai-studio-b0c87",
@@ -206,7 +207,7 @@
       set(adminStatusRef, false).then(() => signOut(auth).then(() => location.reload())); 
   });
 
-  // --- EXPOSED GLOBAL DELETE HANDLERS ---
+  // --- GLOBAL DELETE HANDLERS ---
   window.deleteAiRequest = (key) => {
       if(confirm("Delete this AI request log from database?")) {
           remove(ref(db, `ai_requests/${key}`)).catch(err => alert("Error deleting: " + err.message));
