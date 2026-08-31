@@ -137,7 +137,7 @@
         });
       });
 
-      // 1. AI Queue List & Error Dispatcher
+      // 1. AI Queue List & High Quality Image Download
       onValue(ref(db, 'ai_requests'), async (snap) => {
           const tb = document.getElementById('aiQueueTbody'); tb.innerHTML = '';
           const data = snap.val() || {}; const requests = Object.keys(data).reverse();
@@ -147,14 +147,19 @@
               try { const uSnap = await get(ref(db, `auth_users/${req.uid}`)); if(uSnap.exists()) userStr = `${uSnap.val().name}<br>${uSnap.val().email}`; } catch(e){}
 
               let b = ''; if(req.status === 'pending') b = '<span class="badge b-pending">⏳ Pending</span>'; else if(req.status === 'generating') b = '<span class="badge b-generating">⚙️ Generating</span>'; else if(req.status === 'error') b = `<span class="badge b-error">⚠️ Error</span><br><small>${req.errorMsg}</small>`; else b = '<span class="badge b-completed">✅ Completed</span>';
-              let img = req.imageUrl ? `<br><img src="${req.imageUrl}" style="max-width:200px; border-radius:8px; border:1px solid var(--border); margin-top:10px;">` : '';
+              
+              let imgHtml = req.imageUrl ? `<br>
+                  <img src="${req.imageUrl}" style="max-width:250px; border-radius:8px; border:1px solid var(--border); margin-top:10px;"><br>
+                  <a href="${req.imageUrl}" download="User_Reference_Image.jpg" class="btn btn-gray" style="padding:0.4rem; font-size:0.75rem; margin-top:5px; text-decoration:none; display:inline-block;">⬇ Download HQ Image</a>
+              ` : '';
 
               tb.innerHTML += `<tr>
                   <td><b>${userStr}</b><br><small>Hidden by User? ${req.userHidden?'Yes':'No'}</small></td>
-                  <td><div style="background:var(--surf2); padding:10px; border-radius:8px; font-style:italic;">"${req.prompt}"</div>${img}</td>
+                  <td><div style="background:var(--surf2); padding:10px; border-radius:8px; font-style:italic;">"${req.prompt}"</div>${imgHtml}</td>
                   <td>${b}</td>
                   <td style="text-align:right;">
                       ${req.status !== 'completed' ? `
+                          <!-- ERROR SYSTEM WITH DROPDOWN -->
                           <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; margin-bottom:10px;">
                               <select id="errSelect_${k}" class="inp" style="padding:0.4rem; margin-bottom:5px;" onchange="toggleCustomErr('${k}')">
                                   <option value="">-- Select Error --</option>
@@ -168,6 +173,7 @@
                               <button class="btn btn-danger btn-full" style="padding:0.4rem;" onclick="sendAiError('${k}')">Send Error</button>
                           </div>
                           
+                          <!-- UPLOAD SYSTEM -->
                           <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
                               <input type="url" id="vid_${k}" class="inp" placeholder="Paste generated video URL" style="padding:0.4rem; margin-bottom:5px;">
                               <button class="btn btn-green btn-full" style="padding:0.4rem;" onclick="uploadAiVideo('${k}')">Upload & Complete</button>
@@ -178,6 +184,7 @@
           }
       });
 
+      // Admin Error Handlers
       window.toggleCustomErr = (id) => {
           const select = document.getElementById(`errSelect_${id}`).value;
           const input = document.getElementById(`errInput_${id}`);
@@ -257,4 +264,3 @@
 </script>
 </body>
 </html>
-
